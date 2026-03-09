@@ -1,0 +1,100 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Righteous&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Deep Black #1a1a1a */
+    --background: 0 0% 10%; 
+    /* White */
+    --foreground: 0 0% 100%; 
+    /* Mexican Pink #ff3f98 */
+    --primary: 332 100% 62%; 
+    --primary-foreground: 0 0% 100%;
+    /* Gold/Bronze #d4af37 */
+    --secondary: 46 65% 52%; 
+    --secondary-foreground: 0 0% 10%;
+    /* Gold Accent */
+    --accent: 46 65% 52%; 
+    --accent-foreground: 0 0% 10%;
+    /* Dark Gray */
+    --muted: 0 0% 20%; 
+    --muted-foreground: 0 0% 80%;
+    /* Darker Black for Cards */
+    --card: 0 0% 13%; 
+    --card-foreground: 0 0% 100%; 
+    --popover: 0 0% 13%;
+    --popover-foreground: 0 0% 100%;
+    /* Dark Gray/Bronze Borders */
+    --border: 0 0% 20%; 
+    --input: 0 0% 20%;
+    --ring: 46 65% 52%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 100%;
+    --primary: 332 100% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 46 65% 52%;
+    --secondary-foreground: 0 0% 10%;
+    --accent: 46 65% 52%;
+    --accent-foreground: 0 0% 10%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 80%;
+    --card: 0 0% 13%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 46 65% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Playfair Display', serif;
+    overflow-x: clip;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+  }
+}
+
+@layer utilities {
+  .shadow-rustic {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+  }
+  
+  .shadow-gold {
+    box-shadow: 0 4px 20px -2px rgba(212, 175, 55, 0.15);
+  }
+
+  .artisanal-texture {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  .wood-pattern-dark {
+    background-color: hsl(var(--background));
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+    background-size: 60px 60px, 60px 60px, 100% 100%;
+  }
+
+  .parchment-pattern {
+    background-color: hsl(var(--card));
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+}
