@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useEditableContent } from '@/contexts/EditableContent.jsx';
 import { AlignLeft, AlignCenter, AlignJustify, PaintBucket, Type, Image as ImageIcon, X } from 'lucide-react';
 import { compressImage } from '@/lib/imageCompressor.js';
+import { uploadFile } from '@/lib/storage.js';
 
 const InlineEdit = ({ value, onChange, isEditing, className, type = "text" }) => {
   if (isEditing) {
@@ -40,9 +41,10 @@ const MenuSection = () => {
     if (!file) return;
     try {
       const compressedUrl = await compressImage(file, 1600, 0.7);
-      updateMenuSectionConfig("bgImage", compressedUrl);
+      const storageUrl = await uploadFile(compressedUrl);
+      updateMenuSectionConfig("bgImage", storageUrl);
     } catch (error) {
-      console.error("Error compressing image:", error);
+      console.error("Error processing image:", error);
       alert("No se pudo procesar esta imagen.");
     }
   };

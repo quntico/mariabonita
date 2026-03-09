@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { supabase } from '@/lib/supabase.js';
 
 const EditableContentContext = createContext();
 
@@ -110,46 +111,84 @@ const initialData = {
 };
 
 export const EditableContentProvider = ({ children }) => {
-  const [data, setData] = useState(() => {
-    const saved = localStorage.getItem('lafelixData_v3');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Migrations
-      if (!parsed.heroBackground) parsed.heroBackground = initialData.heroBackground;
-      if (!parsed.heroDecorations) {
-        parsed.heroDecorations = [
-          { id: 'left-dec', url: parsed.heroImages?.left || initialData.heroDecorations[0].url, x: -400, y: -200, size: 128 },
-          { id: 'right-dec', url: parsed.heroImages?.right || initialData.heroDecorations[1].url, x: 400, y: 200, size: 144 }
-        ];
-      }
-      if (!('logoUrl' in parsed)) parsed.logoUrl = initialData.logoUrl;
-      if (!('faviconUrl' in parsed)) parsed.faviconUrl = initialData.faviconUrl;
-      if (!('logoTransform' in parsed)) parsed.logoTransform = initialData.logoTransform;
-      if (!('themeConfig' in parsed)) parsed.themeConfig = initialData.themeConfig;
-      if (!('aboutConfig' in parsed)) parsed.aboutConfig = initialData.aboutConfig;
-      if (!('menuSectionConfig' in parsed)) parsed.menuSectionConfig = initialData.menuSectionConfig;
-      return parsed;
-    }
-    return initialData;
-  });
-
+  const [data, setData] = useState(initialData);
   const [editMode, setEditMode] = useState(false);
+  const [loadingDb, setLoadingDb] = useState(true);
   const quotaAlertShown = useRef(false);
 
+  // Initial Fetch from Supabase
   useEffect(() => {
-    const saveTimer = setTimeout(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data: dbData, error } = await supabase
+          .from('site_settings')
+          .select('data')
+          .eq('id', 1)
+          .single();
+
+        if (error) {
+          console.error('Error fetching settings from DB:', error);
+          const saved = localStorage.getItem('lafelixData_v3');
+          if (saved) applyMigrations(JSON.parse(saved));
+        } else if (dbData && dbData.data && Object.keys(dbData.data).length > 0) {
+          applyMigrations(dbData.data);
+        } else {
+          // Empty DB, apply standard defaults or local storage
+          const saved = localStorage.getItem('lafelixData_v3');
+          if (saved) applyMigrations(JSON.parse(saved));
+        }
+      } catch (err) {
+        console.error('Fetch exception:', err);
+      } finally {
+        setLoadingDb(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const applyMigrations = (parsed) => {
+    // Migrations
+    if (!parsed.heroBackground) parsed.heroBackground = initialData.heroBackground;
+    if (!parsed.heroDecorations) {
+      parsed.heroDecorations = [
+        { id: 'left-dec', url: parsed.heroImages?.left || initialData.heroDecorations[0].url, x: -400, y: -200, size: 128 },
+        { id: 'right-dec', url: parsed.heroImages?.right || initialData.heroDecorations[1].url, x: 400, y: 200, size: 144 }
+      ];
+    }
+    if (!('logoUrl' in parsed)) parsed.logoUrl = initialData.logoUrl;
+    if (!('faviconUrl' in parsed)) parsed.faviconUrl = initialData.faviconUrl;
+    if (!('logoTransform' in parsed)) parsed.logoTransform = initialData.logoTransform;
+    if (!('themeConfig' in parsed)) parsed.themeConfig = initialData.themeConfig;
+    if (!('aboutConfig' in parsed)) parsed.aboutConfig = initialData.aboutConfig;
+    if (!('menuSectionConfig' in parsed)) parsed.menuSectionConfig = initialData.menuSectionConfig;
+    setData(parsed);
+  };
+
+  // Sync back to Supabase and LocalStorage
+  useEffect(() => {
+    if (loadingDb) return; // Don't override DB on initial render
+
+    const saveTimer = setTimeout(async () => {
       try {
         localStorage.setItem('lafelixData_v3', JSON.stringify(data));
-        // Si tuvo exito, reseteamos el ref en caso de que libere espacio despues
         quotaAlertShown.current = false;
+
+        const { error } = await supabase
+          .from('site_settings')
+          .update({ data: data })
+          .eq('id', 1);
+
+        if (error) {
+          console.error("Supabase sync Error: ", error);
+        }
       } catch (error) {
-        console.error('Error al guardar en localStorage:', error);
-        if ((error.name === 'QuotaExceededError' || error.message.includes('quota')) && !quotaAlertShown.current) {
+        console.error('Error al guardar datos:', error);
+        if ((error.name === 'QuotaExceededError' || error.message?.includes('quota')) && !quotaAlertShown.current) {
           quotaAlertShown.current = true;
-          alert('⚠️ Límite de almacenamiento alcanzado.\n\nEl navegador está lleno por las imágenes pesadas que se han subido. Usa menos fotos de archivo, reemplaza con fotos desde "URL" o usa imágenes ligeras.');
+          alert('⚠️ Límite de almacenamiento local alcanzado.');
         }
       }
-    }, 500);
+    }, 1500); // 1.5s debounce for network calls
 
     return () => clearTimeout(saveTimer);
   }, [data]);

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, Link2, RotateCcw, Image, Star, Minus, Maximize2 } from 'lucide-react';
 import { useEditableContent } from '@/contexts/EditableContent.jsx';
 import { compressImage } from '@/lib/imageCompressor.js';
+import { uploadFile } from '@/lib/storage.js';
 
 const UploadZone = ({ preview, label, hint, onUrl, onFile, onReset, defaultPreview }) => {
     const [tab, setTab] = useState('upload'); // 'upload' | 'url'
@@ -19,9 +20,10 @@ const UploadZone = ({ preview, label, hint, onUrl, onFile, onReset, defaultPrevi
         try {
             // Comprimir logo o favicon a max 800px ancho (que es mas que suficiente para logo web)
             const compressedUrl = await compressImage(file, 800, 0.8);
-            onFile(compressedUrl);
+            const storageUrl = await uploadFile(compressedUrl);
+            onFile(storageUrl);
         } catch (error) {
-            console.error("Error comprimiendo imagen:", error);
+            console.error("Error procesando imagen:", error);
             alert("No se pudo procesar esta imagen. Intenta con otra o desde URL.");
         }
     };

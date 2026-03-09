@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LogoEditorDialog from '@/components/LogoEditorDialog.jsx';
 import ThemeEditorDialog from '@/components/ThemeEditorDialog.jsx';
 import { compressImage } from '@/lib/imageCompressor.js';
+import { uploadFile } from '@/lib/storage.js';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -83,9 +84,10 @@ const Header = () => {
 
     try {
       const compressedDataUrl = await compressImage(file, 1600, 0.7);
-      updateHeroBackground(compressedDataUrl);
+      const storageUrl = await uploadFile(compressedDataUrl);
+      updateHeroBackground(storageUrl);
     } catch (error) {
-      console.error("Error compressing image:", error);
+      console.error("Error processing image:", error);
       alert("No se pudo procesar esta imagen. Intenta con otra o desde URL.");
     }
   };
@@ -101,9 +103,10 @@ const Header = () => {
 
     try {
       const compressedDataUrl = await compressImage(file, 800, 0.8);
-      addHeroDecoration(compressedDataUrl);
+      const storageUrl = await uploadFile(compressedDataUrl);
+      addHeroDecoration(storageUrl);
     } catch (error) {
-      console.error("Error compressing image:", error);
+      console.error("Error processing image:", error);
       alert("No se pudo procesar esta imagen. Intenta con otra o desde URL.");
     }
   };

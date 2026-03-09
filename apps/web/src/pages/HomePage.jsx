@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button.jsx';
 import { MessageCircle, UtensilsCrossed, MapPin, Clock, AlignLeft, AlignCenter, AlignJustify, PaintBucket, Type, Image as ImageIcon, X } from 'lucide-react';
 import { useEditableContent } from '@/contexts/EditableContent.jsx';
 import { compressImage } from '@/lib/imageCompressor.js';
+import { uploadFile } from '@/lib/storage.js';
 import { motion } from 'framer-motion';
 import MenuSection from '@/components/MenuSection.jsx';
 import WeekendSpecialsSection from '@/components/WeekendSpecialsSection.jsx';
@@ -46,9 +47,10 @@ const HomePage = () => {
     if (!file) return;
     try {
       const compressedUrl = await compressImage(file, 1600, 0.7);
-      updateAboutConfig("bgImage", compressedUrl);
+      const storageUrl = await uploadFile(compressedUrl);
+      updateAboutConfig("bgImage", storageUrl);
     } catch (error) {
-      console.error("Error compressing image:", error);
+      console.error("Error processing image:", error);
       alert("No se pudo procesar esta imagen.");
     }
   };
