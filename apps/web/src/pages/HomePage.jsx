@@ -268,7 +268,7 @@ const HomePage = () => {
               <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-secondary"></div>
               <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-secondary"></div>
 
-              <div className="flex flex-col items-center text-center relative z-20 gap-2">
+              <div className="flex flex-col items-center text-center relative z-20 gap-0">
 
                 {/* Top Branding */}
                 <motion.div
@@ -303,9 +303,9 @@ const HomePage = () => {
                   initial={{ x: -50, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.9, duration: 0.6, type: "spring" }}
-                  className="relative inline-block w-full max-w-sm mx-auto my-2"
+                  className="relative inline-block w-full max-w-sm mx-auto my-0"
                 >
-                  <div className="absolute inset-0 bg-primary transform -skew-x-6 shadow-rustic border-2 border-border"></div>
+                  <div className="absolute inset-0 bg-primary transform -skew-x-12 shadow-rustic border-2 border-border"></div>
                   <h2 className="relative z-10 text-2xl md:text-4xl font-rustic text-white px-8 py-2 block tracking-widest uppercase drop-shadow-md">
                     <InlineEdit
                       value={data.heroConfig?.bannerText || "DE UNOS"}

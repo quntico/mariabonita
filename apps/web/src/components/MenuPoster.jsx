@@ -398,7 +398,7 @@ const MenuPoster = () => {
           {/* Top tagline divider */}
           <div className="flex items-center justify-center space-x-4 mb-3">
             <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-secondary/60 to-secondary/60"></div>
-            <div className="px-4 text-secondary/70 text-xs font-serif uppercase tracking-[0.4em]">
+            <div className="px-4 text-white/90 text-xs font-serif uppercase tracking-[0.4em]">
               <InlineEdit
                 value={data.posterConfig?.tagline || "Tacos & Antojitos Mexicanos"}
                 onChange={(val) => updatePosterConfig('tagline', val)}
