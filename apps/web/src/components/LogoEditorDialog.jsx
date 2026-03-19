@@ -288,6 +288,18 @@ const LogoEditorDialog = ({ open, onClose }) => {
                                                     className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
                                                 />
                                             </div>
+
+                                            {/* Recentrar */}
+                                            <button
+                                              onClick={() => {
+                                                updateLogoTransform('x', 0);
+                                                updateLogoTransform('y', 0);
+                                              }}
+                                              className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white text-[10px] font-serif uppercase tracking-widest transition-all mt-2"
+                                            >
+                                              <RotateCcw className="w-3 h-3 inline mr-1.5" />
+                                              Recentrar Logo (X=0, Y=0)
+                                            </button>
                                         </div>
                                     )}
                                 </div>

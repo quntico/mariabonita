@@ -39,7 +39,7 @@ const WeekendSpecialsSection = () => {
               Especiales de Fin de Semana
             </span>
           </div>
-          <h2 className="text-5xl md:text-7xl font-serif font-bold text-card-foreground mb-6 uppercase tracking-wider">
+          <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif font-bold text-card-foreground mb-6 uppercase tracking-wider mobile-text-balance">
             Sábados y Domingos
           </h2>
           <div className="flex justify-center items-center space-x-4 mb-6">
@@ -50,7 +50,7 @@ const WeekendSpecialsSection = () => {
           <p className="text-2xl font-serif text-card-foreground/80 max-w-2xl mx-auto font-medium">
             Platillos tradicionales que solo encontrarás los fines de semana
           </p>
-          
+
           {editMode && (
             <div className="mt-8">
               <Button
@@ -76,7 +76,7 @@ const WeekendSpecialsSection = () => {
               <Card className="h-full bg-white/80 border-4 border-muted shadow-rustic hover:border-secondary transition-all duration-300 overflow-hidden group rounded-sm relative">
                 {/* Decorative corner */}
                 <div className="absolute top-0 right-0 w-12 h-12 bg-secondary transform translate-x-6 -translate-y-6 rotate-45"></div>
-                
+
                 <CardHeader className="bg-background border-b-4 border-muted p-6">
                   <CardTitle className="flex items-start justify-between gap-4">
                     <span className="text-2xl font-serif font-bold text-foreground uppercase tracking-wide leading-tight">{item.name}</span>

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Pencil, Check, Lock, Image, Link2, Upload, Eye, EyeOff, Palette } from 'lucide-react';
+import { Menu, X, Pencil, Check, Lock, Image, Link2, Upload, Eye, EyeOff, Palette, Smartphone, Monitor, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button.jsx';
 import { useEditableContent } from '@/contexts/EditableContent.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,7 +12,16 @@ import { uploadFile } from '@/lib/storage.js';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { editMode, setEditMode, data, updateHeroBackground, updateThemeConfig, addHeroDecoration } = useEditableContent();
+  const {
+    editMode,
+    setEditMode,
+    data,
+    updateHeroBackground,
+    updateThemeConfig,
+    addHeroDecoration,
+    mobilePreview,
+    setMobilePreview
+  } = useEditableContent();
 
   // Logo editor dialog
   const [showLogoEditor, setShowLogoEditor] = useState(false);
@@ -113,15 +122,24 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-[#1a1a1a] text-white border-b border-secondary/30 shadow-gold">
+      <header className="sticky top-0 z-[100] bg-[#1a1a1a] text-white border-b border-secondary/30 shadow-gold overflow-visible">
         {/* Elegant Golden Top Accent */}
-        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-secondary to-transparent z-10 opacity-70"></div>
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-secondary to-transparent z-[101] opacity-70"></div>
 
-        <div className="container mx-auto px-4 relative z-20">
+        <div className="container mx-auto px-4 relative z-20 overflow-visible">
           <div
-            className="flex items-center justify-between relative transition-all duration-300"
-            style={{ minHeight: `${data.themeConfig?.headerHeight || 120}px` }}
+            className="flex items-center justify-between relative transition-all duration-300 py-2 md:py-0 overflow-visible"
+            style={{ minHeight: `${window.innerWidth < 768 ? 100 : (data.themeConfig?.headerHeight || 120)}px` }}
           >
+            {/* ── VERSION BADGE (Beating LED) ── */}
+            <div className="absolute left-8 top-1/2 -translate-y-1/2 flex items-center gap-3 pointer-events-none z-[150]">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-5 h-5 bg-[#ff3f98] rounded-full blur-[6px] animate-pulse opacity-60"></div>
+                <div className="relative w-3 h-3 bg-[#ff3f98] rounded-full shadow-[0_0_15px_#ff3f98] border border-white/40"></div>
+              </div>
+              <span className="text-[11px] font-mono font-bold text-white tracking-widest drop-shadow-md">VER 1.0</span>
+            </div>
+
             {/* ── LEFT DESKTOP MENU (Inicio, Menú) ── */}
             <motion.nav
               drag={editMode ? "x" : false}
@@ -140,7 +158,8 @@ const Header = () => {
                 <button
                   key={idx}
                   onClick={() => scrollToSection(item === 'Nosotros' ? 'about' : item.toLowerCase())}
-                  className={`text-sm md:text-base font-serif font-bold text-primary hover:text-secondary py-2 relative group uppercase tracking-widest transition-colors duration-300 transform hover:scale-105 ${editMode ? 'pointer-events-none' : ''}`}
+                  className={`text-sm md:text-base font-serif font-bold hover:text-secondary py-2 relative group uppercase tracking-widest transition-colors duration-300 transform hover:scale-105 ${editMode ? 'pointer-events-none' : ''}`}
+                  style={{ color: 'hsl(var(--nav-text))' }}
                 >
                   {item}
                   <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-secondary transform -translate-x-1/2 group-hover:w-full transition-all duration-300 ease-out"></span>
@@ -150,42 +169,116 @@ const Header = () => {
 
             {/* Logo — click to edit in editor mode */}
             {/* We add pointer-events-none to prevent large invisible bounding boxes from blocking clicks on the rest of the header, but re-enable it on the logo directly */}
-            <div className="relative flex-shrink-0 flex items-center justify-start md:justify-center z-40 pointer-events-none">
-              <Link to="/" className="flex items-center space-x-2 group pointer-events-auto">
+            <div className="absolute left-1/2 -translate-x-1/2 flex-shrink-0 flex items-center justify-center z-40 pointer-events-none w-auto h-full">
+              <div className="flex items-center space-x-2 group pointer-events-auto">
                 {data.logoUrl ? (
                   /* Custom uploaded logo (sin fondo) */
-                  <div className="relative flex flex-col items-center justify-center transition-all duration-500">
-                    <img
-                      src={data.logoUrl}
-                      alt="Maria Bonita Logo"
-                      style={{
-                        transform: `translate(${data.logoTransform?.x || 0}px, ${data.logoTransform?.y || 0}px) scale(${(data.logoTransform?.scale || 100) / 100})`,
-                        transformOrigin: 'center center'
-                      }}
-                      className="h-20 lg:h-28 w-auto object-contain z-10 drop-shadow-md transition-transform duration-300"
-                    />
-                  </div>
+                  <motion.div 
+                    drag={editMode}
+                    dragMomentum={false}
+                    dragElastic={0}
+                    dragTransition={{ power: 0 }}
+                    onDragEnd={(e, info) => {
+                      updateLogoTransform('x', (data.logoTransform?.x || 0) + info.offset.x);
+                      updateLogoTransform('y', (data.logoTransform?.y || 0) + info.offset.y);
+                    }}
+                    initial={{ 
+                      x: data.logoTransform?.x || 0, 
+                      y: data.logoTransform?.y || 0,
+                      scale: (data.logoTransform?.scale || 100) / 100
+                    }}
+                    animate={{ 
+                      x: data.logoTransform?.x || 0, 
+                      y: data.logoTransform?.y || 0,
+                      scale: (data.logoTransform?.scale || 100) / 100
+                    }}
+                    className={`relative flex flex-col items-center justify-center transition-all duration-500 ${editMode ? 'cursor-grab active:cursor-grabbing pointer-events-auto border-2 border-secondary/50 rounded-lg p-2' : ''}`}
+                    style={{ transformOrigin: 'center center' }}
+                  >
+                    {/* Canva-style Resize Handles */}
+                    {editMode && (
+                      <>
+                        <div className="absolute -top-2 -left-2 w-4 h-4 bg-secondary rounded-full shadow-lg border-2 border-white z-[60]"></div>
+                        <div className="absolute -top-2 -right-2 w-4 h-4 bg-secondary rounded-full shadow-lg border-2 border-white z-[60]"></div>
+                        <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-secondary rounded-full shadow-lg border-2 border-white z-[60]"></div>
+                        <motion.div 
+                          drag
+                          dragMomentum={false}
+                          dragElastic={0}
+                          onDragStart={(e) => e.stopPropagation()}
+                          onDrag={(e, info) => {
+                            e.stopPropagation();
+                            const sensitivity = 1.5;
+                            const newScale = Math.max(20, (data.logoTransform?.scale || 100) + (info.delta.x + info.delta.y) * sensitivity);
+                            updateLogoTransform('scale', newScale);
+                          }}
+                          className="absolute -bottom-3 -right-3 w-7 h-7 bg-secondary rounded-full shadow-2xl border-4 border-white z-[70] cursor-nwse-resize flex items-center justify-center hover:scale-125 transition-transform"
+                        >
+                          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        </motion.div>
+                      </>
+                    )}
+
+                    {!editMode ? (
+                      <Link to="/" onClick={(e) => scrollToSection('hero')}>
+                        <img
+                          src={data.logoUrl}
+                          alt="Maria Bonita Logo"
+                          className="h-20 md:h-24 lg:h-32 w-auto object-contain z-10 drop-shadow-md transition-transform duration-300"
+                        />
+                      </Link>
+                    ) : (
+                      <img
+                        src={data.logoUrl}
+                        alt="Maria Bonita Logo"
+                        className="h-20 md:h-24 lg:h-32 w-auto object-contain z-10 drop-shadow-md transition-transform duration-300"
+                      />
+                    )}
+                  </motion.div>
                 ) : (
                   /* Default text logo */
-                  <div className="flex flex-col items-center justify-center border border-secondary/50 px-3 py-1.5 bg-[#8B5A3C] group-hover:border-secondary transition-all duration-500 relative overflow-hidden shadow-lg">
-                    {/* Golden Corner Flourishes */}
-                    <div className="absolute top-0.5 left-0.5 w-1.5 h-1.5 border-t border-l border-secondary opacity-70"></div>
-                    <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 border-t border-r border-secondary opacity-70"></div>
-                    <div className="absolute bottom-0.5 left-0.5 w-1.5 h-1.5 border-b border-l border-secondary opacity-70"></div>
-                    <div className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 border-b border-r border-secondary opacity-70"></div>
-
-                    <span className="text-2xl md:text-3xl font-serif font-bold text-white tracking-[0.15em] uppercase z-10 drop-shadow-md ml-[0.15em]">
-                      MARIA BONITA
-                    </span>
-                    {/* Mexican Pink & Gold Accent Line */}
-                    <div className="flex items-center space-x-2 mt-0.5 z-10">
-                      <div className="h-[1px] w-8 bg-secondary/70"></div>
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(255,63,152,0.6)]"></div>
-                      <div className="h-[1px] w-8 bg-secondary/70"></div>
-                    </div>
-                  </div>
+                  <motion.div 
+                    drag={editMode}
+                    dragMomentum={false}
+                    dragElastic={0}
+                    dragTransition={{ power: 0 }}
+                    onDragEnd={(e, info) => {
+                      updateLogoTransform('x', (data.logoTransform?.x || 0) + info.offset.x);
+                      updateLogoTransform('y', (data.logoTransform?.y || 0) + info.offset.y);
+                    }}
+                    initial={{ 
+                      x: data.logoTransform?.x || 0, 
+                      y: data.logoTransform?.y || 0,
+                      scale: 1
+                    }}
+                    animate={{ 
+                      x: data.logoTransform?.x || 0, 
+                      y: data.logoTransform?.y || 0,
+                      scale: 1
+                    }}
+                    className={`flex flex-col items-center justify-center transition-all duration-500 group ${editMode ? 'cursor-grab active:cursor-grabbing pointer-events-auto' : ''}`}
+                    style={{ transformOrigin: 'center center' }}
+                  >
+                    {!editMode ? (
+                      <Link to="/" onClick={(e) => scrollToSection('hero')} className="flex flex-col items-center">
+                        <span className="text-xl md:text-4xl font-serif font-bold tracking-[0.2em] uppercase z-10 drop-shadow-lg transition-colors duration-500"
+                          style={{ color: 'hsl(var(--logo-text))' }}>
+                          {data.businessInfo?.name || "MARIA BONITA"}
+                        </span>
+                        <div className="h-[1px] w-1/2 bg-gradient-to-r from-transparent via-secondary to-transparent mt-1"></div>
+                      </Link>
+                    ) : (
+                      <>
+                        <span className="text-xl md:text-4xl font-serif font-bold tracking-[0.2em] uppercase z-10 drop-shadow-lg transition-colors duration-500"
+                          style={{ color: 'hsl(var(--logo-text))' }}>
+                          {data.businessInfo?.name || "MARIA BONITA"}
+                        </span>
+                        <div className="h-[1px] w-1/2 bg-gradient-to-r from-transparent via-secondary to-transparent mt-1"></div>
+                      </>
+                    )}
+                  </motion.div>
                 )}
-              </Link>
+              </div>
 
               {/* Edit logo overlay button (only in editor mode) */}
               {editMode && (
@@ -224,7 +317,8 @@ const Header = () => {
                   <button
                     key={idx}
                     onClick={() => scrollToSection(item === 'Nosotros' ? 'about' : item.toLowerCase())}
-                    className={`text-sm md:text-base font-serif font-bold text-primary hover:text-white py-2 relative group uppercase tracking-widest transition-colors duration-300 transform hover:scale-105 ${editMode ? 'pointer-events-none' : ''}`}
+                    className={`text-sm md:text-base font-serif font-bold hover:text-white py-2 relative group uppercase tracking-widest transition-colors duration-300 transform hover:scale-105 ${editMode ? 'pointer-events-none' : ''}`}
+                    style={{ color: 'hsl(var(--nav-text))' }}
                   >
                     {item}
                     <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-secondary transform -translate-x-1/2 group-hover:w-full transition-all duration-300 ease-out"></span>
@@ -253,31 +347,55 @@ const Header = () => {
                     )}
                   </motion.button>
 
-                  {/* Editor Panel Indicator */}
+                  {/* Fixed Editor Toolbar at the bottom */}
                   {editMode && (
-                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4">
+                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-2 bg-[#1a1a1a]/95 backdrop-blur-md border border-secondary/40 px-6 py-3 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.8)] border-b-2">
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/4 h-[1px] bg-secondary/50"></div>
+
                       <motion.button
-                        initial={{ opacity: 0, scale: 0.7, y: -5 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.7 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setShowThemeEditor(true)}
-                        title="Cambiar Tema y Fuentes"
-                        className="flex items-center gap-1 text-[10px] font-bold text-secondary/80 hover:text-secondary whitespace-nowrap uppercase tracking-wider transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-secondary hover:text-white uppercase tracking-widest transition-all rounded-full hover:bg-secondary/10"
                       >
-                        <Palette className="w-3 h-3" />
+                        <Palette className="w-4 h-4" />
                         Estilos
                       </motion.button>
 
+                      <div className="w-px h-6 bg-secondary/20"></div>
+
                       <motion.button
-                        initial={{ opacity: 0, scale: 0.7, y: -5 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.7 }}
-                        onClick={() => setShowBgPanel(!showBgPanel)}
-                        title="Cambiar fondo"
-                        className="flex items-center gap-1 text-[10px] font-bold text-secondary/80 hover:text-secondary whitespace-nowrap uppercase tracking-wider transition-colors"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowLogoEditor(true)}
+                        className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-full ${showLogoEditor ? 'bg-secondary text-[#1a1a1a]' : 'text-secondary hover:text-white hover:bg-secondary/10'}`}
                       >
-                        <Image className="w-3 h-3" />
+                        <Image className="w-4 h-4" />
+                        Logo
+                      </motion.button>
+
+                      <div className="w-px h-6 bg-secondary/20"></div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowBgPanel(!showBgPanel)}
+                        className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-full ${showBgPanel ? 'bg-secondary text-[#1a1a1a]' : 'text-secondary hover:text-white hover:bg-secondary/10'}`}
+                      >
+                        <Upload className="w-4 h-4" />
                         Fondo
+                      </motion.button>
+
+                      <div className="w-px h-6 bg-secondary/20"></div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setMobilePreview(!mobilePreview)}
+                        className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-full ${mobilePreview ? 'bg-primary text-white border-primary' : 'text-secondary hover:text-white hover:bg-secondary/10'}`}
+                      >
+                        {mobilePreview ? <Monitor className="w-4 h-4" /> : <Smartphone className="w-4 h-4" />}
+                        {mobilePreview ? 'Escritorio' : 'Móvil'}
                       </motion.button>
                     </div>
                   )}
@@ -301,12 +419,15 @@ const Header = () => {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-[#1a1a1a] border-t border-secondary/30 relative z-10 shadow-xl"
+              initial={{ opacity: 0, x: '100%' }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: '100%' }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="md:hidden fixed inset-0 z-[150] bg-[#1a1a1a] flex flex-col pt-24"
             >
-              <nav className="container mx-auto px-4 py-8 flex flex-col space-y-6">
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-secondary to-transparent z-[151] opacity-70"></div>
+
+              <nav className="container mx-auto px-6 py-8 flex flex-col space-y-4">
                 {['Inicio', 'Menú', 'Nosotros', 'Contacto'].map((item, idx) => (
                   <button
                     key={idx}

@@ -7,12 +7,19 @@ import { compressImage } from '@/lib/imageCompressor.js';
 import { uploadFile } from '@/lib/storage.js';
 
 const InlineEdit = ({ value, onChange, isEditing, className, type = "text" }) => {
+  const [localValue, setLocalValue] = React.useState(value);
+
+  React.useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   if (isEditing) {
     if (type === "textarea") {
       return (
         <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={localValue}
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={() => onChange(localValue)}
           className={`bg-black/20 border-b-2 border-dashed border-secondary/50 focus:outline-none focus:border-secondary w-full max-w-full resize-y min-h-[120px] p-2 rounded-sm ${className}`}
           style={{ textAlign: 'inherit' }}
         />
@@ -21,8 +28,11 @@ const InlineEdit = ({ value, onChange, isEditing, className, type = "text" }) =>
     return (
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={localValue}
+        onChange={(e) => {
+          setLocalValue(e.target.value);
+          onChange(e.target.value); // Keep live for small texts
+        }}
         className={`bg-black/20 border-b-2 border-dashed border-secondary/50 focus:outline-none focus:border-secondary px-1 py-0 w-full max-w-full rounded-sm ${className}`}
         style={{ textAlign: 'inherit' }}
       />
@@ -61,10 +71,9 @@ const MenuSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative text-center mb-16 p-8 rounded-sm border-4 border-muted backdrop-blur-sm max-w-4xl mx-auto shadow-rustic overflow-hidden transition-colors duration-500"
+          className="relative mb-16 p-8 rounded-sm border-4 border-muted backdrop-blur-sm max-w-4xl mx-auto shadow-rustic overflow-hidden transition-colors duration-500"
           style={{
-            color: data.menuSectionConfig?.textColor || "var(--foreground)",
-            textAlign: data.menuSectionConfig?.textAlign || "center"
+            color: data.menuSectionConfig?.textColor || "var(--foreground)"
           }}
         >
           {/* Background Layers */}
@@ -73,8 +82,10 @@ const MenuSection = () => {
             style={{ backgroundImage: data.menuSectionConfig?.bgImage ? `url('${data.menuSectionConfig.bgImage}')` : 'none' }}
           ></div>
           <div
-            className="absolute inset-0 z-0 pointer-events-none transition-colors duration-500"
-            style={{ backgroundColor: data.menuSectionConfig?.bgColor || "rgba(255, 255, 255, 0.1)" }}
+            className="absolute inset-0 z-0 pointer-events-none transition-all duration-500"
+            style={{
+              backgroundColor: data.menuSectionConfig?.bgColor?.replace(/[\d.]+\)$/g, `${(data.menuSectionConfig?.boxOpacity ?? 20) / 100})`) || `rgba(255, 255, 255, ${(data.menuSectionConfig?.boxOpacity ?? 10) / 100})`
+            }}
           ></div>
 
           {/* Toolbar for Editor Mode */}
@@ -123,43 +134,59 @@ const MenuSection = () => {
                 />
               </div>
               <div className="w-px h-6 bg-white/20 self-center mx-1"></div>
-              <button
-                title="Alinear Izquierda"
-                onClick={() => updateMenuSectionConfig("textAlign", "left")}
-                className={`p-1.5 rounded-md transition-all ${data.menuSectionConfig?.textAlign === "left" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/70 hover:bg-white/20 hover:text-white'}`}
-              >
-                <AlignLeft className="w-4 h-4" />
-              </button>
-              <button
-                title="Centrar"
-                onClick={() => updateMenuSectionConfig("textAlign", "center")}
-                className={`p-1.5 rounded-md transition-all ${(data.menuSectionConfig?.textAlign === "center" || !data.menuSectionConfig?.textAlign) ? 'bg-secondary text-[#1a1a1a]' : 'text-white/70 hover:bg-white/20 hover:text-white'}`}
-              >
-                <AlignCenter className="w-4 h-4" />
-              </button>
-              <button
-                title="Justificar"
-                onClick={() => updateMenuSectionConfig("textAlign", "justify")}
-                className={`p-1.5 rounded-md transition-all ${data.menuSectionConfig?.textAlign === "justify" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/70 hover:bg-white/20 hover:text-white'}`}
-              >
-                <AlignJustify className="w-4 h-4" />
-              </button>
+
+              {/* Aligned Groups for Title & Text */}
+              <div className="flex flex-col gap-1.5 px-1 py-0.5 bg-black/40 rounded-md border border-white/5">
+                <div className="flex items-center gap-1">
+                  <span className="text-[7px] text-white/40 uppercase w-7 text-right pr-1">Tít</span>
+                  <button onClick={() => updateMenuSectionConfig("titleTextAlign", "left")} className={`p-1 rounded transition-all ${data.menuSectionConfig?.titleTextAlign === "left" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignLeft className="w-2.5 h-2.5" /></button>
+                  <button onClick={() => updateMenuSectionConfig("titleTextAlign", "center")} className={`p-1 rounded transition-all ${(data.menuSectionConfig?.titleTextAlign === "center" || !data.menuSectionConfig?.titleTextAlign) ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignCenter className="w-2.5 h-2.5" /></button>
+                  <button onClick={() => updateMenuSectionConfig("titleTextAlign", "justify")} className={`p-1 rounded transition-all ${data.menuSectionConfig?.titleTextAlign === "justify" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignJustify className="w-2.5 h-2.5" /></button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[7px] text-white/40 uppercase w-7 text-right pr-1">Pár</span>
+                  <button onClick={() => updateMenuSectionConfig("textTextAlign", "left")} className={`p-1 rounded transition-all ${data.menuSectionConfig?.textTextAlign === "left" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignLeft className="w-2.5 h-2.5" /></button>
+                  <button onClick={() => updateMenuSectionConfig("textTextAlign", "center")} className={`p-1 rounded transition-all ${data.menuSectionConfig?.textTextAlign === "center" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignCenter className="w-2.5 h-2.5" /></button>
+                  <button onClick={() => updateMenuSectionConfig("textTextAlign", "justify")} className={`p-1 rounded transition-all ${data.menuSectionConfig?.textTextAlign === "justify" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignJustify className="w-2.5 h-2.5" /></button>
+                </div>
+              </div>
+
+              <div className="w-px h-6 bg-white/20 self-center mx-1"></div>
+
+              <div className="relative group flex flex-col items-center justify-center pt-1" title="Opacidad del Cuadro">
+                <span className="text-[8px] text-white/50 mb-0.5">OPAC</span>
+                <input
+                  type="range" min="0" max="100" step="5"
+                  value={data.menuSectionConfig?.boxOpacity ?? 20}
+                  onChange={(e) => updateMenuSectionConfig("boxOpacity", Number(e.target.value))}
+                  className="w-12 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-secondary"
+                />
+              </div>
             </div>
           )}
 
-          <h2 className="relative z-10 text-5xl md:text-7xl font-serif font-bold mb-6 uppercase tracking-wider drop-shadow-md" style={{ color: 'inherit' }}>
+          <h2
+            className="relative z-10 text-4xl md:text-7xl font-serif font-bold mb-6 uppercase tracking-wider drop-shadow-md mobile-text-balance"
+            style={{ color: 'inherit', textAlign: data.menuSectionConfig?.titleTextAlign || 'center' }}
+          >
             <InlineEdit
               value={data.menuSectionConfig?.title || "NUESTRO MENÚ"}
               onChange={(val) => updateMenuSectionConfig('title', val)}
               isEditing={editMode}
             />
           </h2>
-          <div className={`relative z-10 flex items-center mb-8 ${data.menuSectionConfig?.textAlign === 'left' ? 'justify-start space-x-4' : data.menuSectionConfig?.textAlign === 'justify' ? 'justify-center w-[500px] mx-auto space-x-12' : 'justify-center space-x-4'}`}>
+          <div className={`relative z-10 flex items-center mb-8 ${(data.menuSectionConfig?.textTextAlign || data.menuSectionConfig?.textAlign) === 'left' ? 'justify-start space-x-4' :
+            (data.menuSectionConfig?.textTextAlign || data.menuSectionConfig?.textAlign) === 'right' ? 'justify-end space-x-4' :
+              'justify-center space-x-4'
+            }`}>
             <div className="h-1 w-16 bg-secondary"></div>
             <div className="w-4 h-4 bg-primary rotate-45"></div>
             <div className="h-1 w-16 bg-secondary"></div>
           </div>
-          <p className="relative z-10 max-w-2xl mx-auto font-serif text-2xl leading-relaxed font-medium" style={{ color: 'inherit' }}>
+          <p
+            className="relative z-10 max-w-2xl mx-auto font-serif text-2xl leading-relaxed font-medium"
+            style={{ color: 'inherit', textAlign: data.menuSectionConfig?.textTextAlign || 'center' }}
+          >
             <InlineEdit
               type="textarea"
               value={data.menuSectionConfig?.text || "Descubre nuestros platillos tradicionales mexicanos preparados con amor, recetas de la abuela y los mejores ingredientes."}

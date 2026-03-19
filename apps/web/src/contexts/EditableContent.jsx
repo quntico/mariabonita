@@ -11,11 +11,20 @@ const initialData = {
     secondaryColor: "#d4af37",
     heroOverlayOpacity: 80,
     heroGradientStart: "#000000",
+    heroOffsetY: 0,
+    heroOffsetX: 0,
+    heroScale: 1,
     headerHeight: 120,
     menuSpacing: 48,
+    globalPageBg: "",
+    globalPageBgOpacity: 70,
+    globalPageBgTexture: true,
+    navTextColor: "#ff3f98",
+    bodyTextColor: "#ffffff",
+    logoTextColor: "#d4af37"
   },
   businessInfo: {
-    name: "LA FÉLIX",
+    name: "MARIA BONITA",
     subtitle: "Tacos & Antojitos Mexicanos",
     tagline: "Auténtico sabor mexicano con tradición y corazón",
     whatsapp: "+521234567890",
@@ -40,19 +49,42 @@ const initialData = {
   ],
   logoUrl: null,
   faviconUrl: null,
+  whatsappLogoUrl: null,
+  whatsappLogoSize: 48,
+  heroConfig: {
+    titlePart1: "SI CAES QUE SEA EN LA TENTACIÓN",
+    bannerText: "DE UNOS",
+    titlePart2: "TACOS",
+    whatsappText: "PEDIR AHORA",
+    menuText: "VER MENÚ"
+  },
   logoTransform: { x: 0, y: 0, scale: 100 },
   posterConfig: {
     titlePart1: "SI CAES QUE SEA EN LA TENTACIÓN",
     bannerText: "DE UNOS",
     titlePart2: "TACOS",
-    footerText: "¡GRACIAS POR SU PREFERENCIA!"
+    footerText: "¡GRACIAS POR SU PREFERENCIA!",
+    bgImage: "",
+    bgColor: "#1a1a1a",
+    bgOpacity: 0,
+    tagline: "Tacos & Antojitos Mexicanos",
+    categoryTitles: {
+      tacos: "TACOS",
+      desayunos: "DESAYUNOS / ANTOJITOS",
+      otros: "OTROS",
+      quesadillas: "QUESADILLAS / SINCRONIZADAS",
+      weekendSpecials: "SÁBADOS Y DOMINGOS",
+      bebidas: "BEBIDAS"
+    }
   },
   aboutConfig: {
     title: "NUESTRA HISTORIA",
     text: "En MARIA BONITA, preparamos cada platillo con la misma pasión y sazón que nos enseñaron en casa. Utilizamos ingredientes frescos, tortillas hechas a mano y salsas de molcajete para llevar el verdadero sabor de México a tu mesa.",
     bgColor: "rgba(255, 255, 255, 0.6)",
     textColor: "inherit",
-    textAlign: "center",
+    titleTextAlign: "center",
+    textTextAlign: "center",
+    textAlign: "center", // Keep for backward compatibility if needed, but we'll prioritize the specifics
     badges: [
       { id: 1, text1: "100%", text2: "", bgColor: "#ff3f98", size: 80, fontSize: "1.5rem" },
       { id: 2, text1: "SABOR", text2: "REAL", bgColor: "#d4af37", size: 80, fontSize: "1.25rem" },
@@ -64,42 +96,44 @@ const initialData = {
     text: "Descubre nuestros platillos tradicionales mexicanos preparados con amor, recetas de la abuela y los mejores ingredientes.",
     bgColor: "rgba(255, 255, 255, 0.1)",
     textColor: "inherit",
+    titleTextAlign: "center",
+    textTextAlign: "center",
     textAlign: "center"
   },
   menu: {
     tacos: [
-      { id: 1, name: "Cecina", description: "", price: 15, recommended: true },
-      { id: 2, name: "Bistec", description: "", price: 15, recommended: false },
-      { id: 3, name: "Longaniza roja", description: "", price: 15, recommended: false },
-      { id: 4, name: "Chorizo verde", description: "", price: 15, recommended: true },
-      { id: 5, name: "Pechuga", description: "", price: 15, recommended: false },
-      { id: 6, name: "Campechanos", description: "", price: 18, recommended: true }
+      { id: 1, name: "Cecina", description: "Cecina de Yecapixtla de primera calidad", price: 15, recommended: true },
+      { id: 2, name: "Bistec", description: "Suave bistec de res a la plancha", price: 15, recommended: false },
+      { id: 3, name: "Longaniza roja", description: "Tradicional longaniza artesanal", price: 15, recommended: false },
+      { id: 4, name: "Chorizo verde", description: "Especialidad de la casa con especias", price: 15, recommended: true },
+      { id: 5, name: "Pechuga", description: "Pechuga de pollo marinada", price: 15, recommended: false },
+      { id: 6, name: "Campechanos", description: "Combinación de bistec y longaniza", price: 18, recommended: true }
     ],
     desayunos: [
-      { id: 7, name: "Chilaquiles verdes", description: "", price: 45, recommended: true },
-      { id: 8, name: "Chilaquiles rojos", description: "", price: 45, recommended: false },
-      { id: 9, name: "Huevos al gusto", description: "", price: 40, recommended: false },
-      { id: 10, name: "Molletes dulces", description: "", price: 35, recommended: false },
-      { id: 11, name: "Molletes salados", description: "", price: 35, recommended: false },
-      { id: 12, name: "Waffles", description: "", price: 40, recommended: true }
+      { id: 7, name: "Chilaquiles verdes", description: "Con salsa de tomatillo, crema, queso y cebolla", price: 45, recommended: true },
+      { id: 8, name: "Chilaquiles rojos", description: "Salsa de chile guajillo y especias de la casa", price: 45, recommended: false },
+      { id: 9, name: "Huevos al gusto", description: "Estrellados, revueltos o con jamón/tocino", price: 40, recommended: false },
+      { id: 10, name: "Molletes dulces", description: "Con mantequilla y mermelada de fresa", price: 35, recommended: false },
+      { id: 11, name: "Molletes salados", description: "Frijoles refritos, queso fundido y pico de gallo", price: 35, recommended: false },
+      { id: 12, name: "Waffles", description: "Acompañados de miel, fruta y mantequilla", price: 40, recommended: true }
     ],
     otros: [
-      { id: 13, name: "Comida corrida", description: "", price: 65, recommended: true }
+      { id: 13, name: "Comida corrida", description: "Menú completo que incluye sopa, arroz y plato fuerte", price: 65, recommended: true }
     ],
     quesadillas: [
-      { id: 14, name: "Quesadillas", description: "", price: 25, recommended: false },
-      { id: 15, name: "Sincronizadas", description: "", price: 30, recommended: false }
+      { id: 14, name: "Quesadillas", description: "De maíz o harina con queso oaxaca fundido", price: 25, recommended: false },
+      { id: 15, name: "Sincronizadas", description: "Tortilla de harina con jamón y queso", price: 30, recommended: false }
     ],
     weekendSpecials: [
-      { id: 16, name: "Barbacoa", description: "", price: 120, recommended: true },
-      { id: 17, name: "Pozole", description: "", price: 80, recommended: true },
-      { id: 18, name: "Pancita", description: "", price: 70, recommended: false }
+      { id: 16, name: "Barbacoa", description: "Tradicional de borrego cocida en horno de tierra", price: 120, recommended: true },
+      { id: 17, name: "Pozole", description: "Pozole blanco o rojo con carne de cerdo y guarnición", price: 80, recommended: true },
+      { id: 18, name: "Pancita", description: "Caldo de res con chile guajillo y especias", price: 70, recommended: false }
     ],
     bebidas: [
-      { id: 19, name: "Aguas frescas", description: "", price: 20, recommended: false },
-      { id: 20, name: "Refrescos", description: "", price: 18, recommended: false },
-      { id: 21, name: "Licuados", description: "", price: 30, recommended: true },
-      { id: 22, name: "Café", description: "", price: 25, recommended: false }
+      { id: 19, name: "Aguas frescas", description: "Sabores naturales de temporada", price: 20, recommended: false },
+      { id: 20, name: "Refrescos", description: "Variedad de refrescos de la familia Coca-Cola", price: 18, recommended: false },
+      { id: 21, name: "Licuados", description: "Fresa, chocolate, plátano o mixtos", price: 30, recommended: true },
+      { id: 22, name: "Café", description: "Café de olla con canela y piloncillo", price: 25, recommended: false }
     ]
   },
   gallery: [
@@ -113,6 +147,7 @@ const initialData = {
 export const EditableContentProvider = ({ children }) => {
   const [data, setData] = useState(initialData);
   const [editMode, setEditMode] = useState(false);
+  const [mobilePreview, setMobilePreview] = useState(false);
   const [loadingDb, setLoadingDb] = useState(true);
   const quotaAlertShown = useRef(false);
 
@@ -161,6 +196,15 @@ export const EditableContentProvider = ({ children }) => {
     if (!('themeConfig' in parsed)) parsed.themeConfig = initialData.themeConfig;
     if (!('aboutConfig' in parsed)) parsed.aboutConfig = initialData.aboutConfig;
     if (!('menuSectionConfig' in parsed)) parsed.menuSectionConfig = initialData.menuSectionConfig;
+    if (!('heroConfig' in parsed)) {
+      parsed.heroConfig = {
+        titlePart1: parsed.posterConfig?.titlePart1 || initialData.heroConfig.titlePart1,
+        bannerText: parsed.posterConfig?.bannerText || initialData.heroConfig.bannerText,
+        titlePart2: parsed.posterConfig?.titlePart2 || initialData.heroConfig.titlePart2,
+        whatsappText: initialData.heroConfig.whatsappText,
+        menuText: initialData.heroConfig.menuText
+      };
+    }
     setData(parsed);
   };
 
@@ -240,6 +284,37 @@ export const EditableContentProvider = ({ children }) => {
     if (data.themeConfig.secondaryColor) {
       root.style.setProperty('--secondary', hexToHSL(data.themeConfig.secondaryColor));
     }
+    if (typeof data.themeConfig.heroOffsetY !== 'undefined') {
+      root.style.setProperty('--hero-offset-y', `${data.themeConfig.heroOffsetY}px`);
+    }
+    if (typeof data.themeConfig.heroOffsetX !== 'undefined') {
+      root.style.setProperty('--hero-offset-x', `${data.themeConfig.heroOffsetX}px`);
+    }
+    if (typeof data.themeConfig.heroScale !== 'undefined') {
+      root.style.setProperty('--hero-scale', data.themeConfig.heroScale);
+    }
+    // Carga dinámica de fuentes de Google
+    if (data.themeConfig.fontFamily) {
+      const fontName = data.themeConfig.fontFamily;
+      const fontId = 'dynamic-google-font';
+      let fontLink = document.getElementById(fontId);
+      if (!fontLink) {
+        fontLink = document.createElement('link');
+        fontLink.id = fontId;
+        fontLink.rel = 'stylesheet';
+        document.head.appendChild(fontLink);
+      }
+      fontLink.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&display=swap`;
+    }
+    if (data.themeConfig.navTextColor) {
+      root.style.setProperty('--nav-text', hexToHSL(data.themeConfig.navTextColor));
+    }
+    if (data.themeConfig.bodyTextColor) {
+      root.style.setProperty('--body-text', hexToHSL(data.themeConfig.bodyTextColor));
+    }
+    if (data.themeConfig.logoTextColor) {
+      root.style.setProperty('--logo-text', hexToHSL(data.themeConfig.logoTextColor));
+    }
     if (data.themeConfig.fontFamily) {
       root.style.setProperty('--font-family', data.themeConfig.fontFamily);
       document.body.style.fontFamily = `"${data.themeConfig.fontFamily}", serif`;
@@ -282,6 +357,16 @@ export const EditableContentProvider = ({ children }) => {
     }));
   };
 
+  const updateHeroConfig = (field, value) => {
+    setData(prev => ({
+      ...prev,
+      heroConfig: {
+        ...(prev.heroConfig || initialData.heroConfig),
+        [field]: value
+      }
+    }));
+  };
+
   const updateHeroImage = (position, url) => {
     setData(prev => ({
       ...prev,
@@ -309,6 +394,14 @@ export const EditableContentProvider = ({ children }) => {
         [field]: value
       }
     }));
+  };
+
+  const updateWhatsAppLogoUrl = (url) => {
+    setData(prev => ({ ...prev, whatsappLogoUrl: url }));
+  };
+
+  const updateWhatsAppLogoSize = (size) => {
+    setData(prev => ({ ...prev, whatsappLogoSize: size }));
   };
 
   const updateFaviconUrl = (url) => {
@@ -491,7 +584,10 @@ export const EditableContentProvider = ({ children }) => {
     updateLogoUrl,
     updateLogoTransform,
     updateFaviconUrl,
+    updateWhatsAppLogoUrl,
+    updateWhatsAppLogoSize,
     updateThemeConfig,
+    updateHeroConfig,
     updatePosterConfig,
     updateHours,
     updateSocial,
@@ -507,7 +603,9 @@ export const EditableContentProvider = ({ children }) => {
     removeHeroDecoration,
     updateAboutConfig,
     updateAboutBadge,
-    updateMenuSectionConfig
+    updateMenuSectionConfig,
+    mobilePreview,
+    setMobilePreview
   };
 
   return (

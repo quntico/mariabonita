@@ -3,46 +3,219 @@ import React, { useRef, useState } from 'react';
 import { useEditableContent } from '@/contexts/EditableContent';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Download, FileText, Plus, Trash2 } from 'lucide-react';
+import { Download, FileText, Plus, Trash2, Image as ImageIcon, PaintBucket, Type, X } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useToast } from '@/hooks/use-toast';
 
 const InlineEdit = ({ value, onChange, isEditing, className, type = "text" }) => {
+  const [localValue, setLocalValue] = React.useState(value);
+
+  React.useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   if (isEditing) {
+    const isPrice = type === 'number' || className.includes('w-24');
+
+    const handleChange = (e) => {
+      const val = e.target.value;
+      setLocalValue(val);
+      if (!isPrice) {
+        onChange(val);
+      }
+    };
+
+    const handleBlur = () => {
+      if (isPrice) {
+        const numeric = parseFloat(localValue) || 0;
+        onChange(numeric);
+        setLocalValue(numeric); // Normalize display
+      }
+    };
+
+    if (isPrice) {
+      return (
+        <Input
+          type="text"
+          value={localValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          className={`bg-white/10 border-secondary/30 text-white placeholder:text-white/40 focus:ring-1 focus:ring-secondary ${className}`}
+          style={{ textAlign: 'inherit' }}
+        />
+      );
+    }
     return (
-      <Input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value)}
-        className={`h-8 bg-white/10 border-secondary/30 text-white placeholder:text-white/40 ${className}`}
+      <textarea
+        value={localValue}
+        onChange={handleChange}
+        className={`bg-white/5 border-b border-dashed border-secondary/50 text-white placeholder:text-white/20 focus:outline-none focus:border-secondary w-full resize-none overflow-hidden py-1 rounded-sm ${className}`}
+        style={{ textAlign: 'inherit', height: 'auto', minHeight: '1.2em' }}
+        onInput={(e) => {
+          e.target.style.height = 'auto';
+          e.target.style.height = e.target.scrollHeight + 'px';
+        }}
+        ref={(el) => {
+          if (el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+          }
+        }}
       />
     );
   }
-  return <span className={className}>{value}</span>;
+  return <span className={className} style={{ textAlign: 'inherit' }}>{value}</span>;
+};
+
+const MenuItemRow = ({ item, category, updateMenuItem, removeMenuItem, editMode }) => (
+  <div className="flex flex-col group relative pb-3 mb-3 border-b border-white/5 last:border-0 last:mb-0 last:pb-0">
+    <div className="flex justify-between items-start w-full gap-4">
+      {/* Golden bullet */}
+      <div className="mt-2.5 w-2 h-2 bg-secondary rotate-45 flex-shrink-0 ml-0.5"></div>
+
+      <div className="flex-1 pl-4 min-w-0">
+        <InlineEdit
+          value={item.name}
+          onChange={(val) => updateMenuItem(category, item.id, 'name', val)}
+          isEditing={editMode}
+          className="text-lg md:text-xl font-serif font-bold text-white tracking-wide uppercase drop-shadow-sm leading-tight block"
+        />
+
+        {/* Description Field */}
+        {(editMode || item.description) && (
+          <div className="mt-1">
+            <InlineEdit
+              value={item.description || ""}
+              onChange={(val) => updateMenuItem(category, item.id, 'description', val)}
+              isEditing={editMode}
+              className={`text-xs md:text-sm font-sans italic leading-snug block w-full pr-2 ${item.description ? 'text-white/60' : 'text-white/30'}`}
+              placeholder="Añadir descripción del producto..."
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center flex-shrink-0 pt-0.5">
+        <span className="text-lg md:text-xl font-bold text-primary mr-0.5">$</span>
+        <InlineEdit
+          value={item.price}
+          onChange={(val) => updateMenuItem(category, item.id, 'price', val)}
+          isEditing={editMode}
+          type="number"
+          className="text-lg md:text-xl font-bold text-white w-20 md:w-24 px-2 text-right"
+        />
+        {editMode && (
+          <button
+            onClick={() => removeMenuItem(category, item.id)}
+            className="ml-3 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-white/10 rounded-full"
+            title="Eliminar producto"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+/* ── Category card ── */
+const CategoryCard = ({ title, accentColor = 'secondary', children, onAdd, onTitleChange, editMode }) => {
+  const accentMap = {
+    secondary: 'border-secondary',
+    primary: 'border-primary',
+    accent: 'border-amber-500',
+  };
+  const textMap = {
+    secondary: 'text-secondary',
+    primary: 'text-primary',
+    accent: 'text-amber-400',
+  };
+  return (
+    <div className="rounded-sm border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden">
+      {/* Card header */}
+      <div className={`flex items-center justify-between px-4 md:px-5 py-3 border-b-2 ${accentMap[accentColor]} bg-white/5`}>
+        <InlineEdit
+          value={title}
+          onChange={onTitleChange}
+          isEditing={editMode}
+          className={`text-xl sm:text-2xl md:text-3xl font-rustic tracking-widest uppercase ${textMap[accentColor]} drop-shadow-md`}
+        />
+        {editMode && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-white/60 hover:text-white hover:bg-white/10 border border-white/20"
+            onClick={onAdd}
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+      {/* Card body */}
+      <div className="px-5 py-4">
+        {children}
+      </div>
+    </div>
+  );
 };
 
 const MenuPoster = () => {
   const { data, editMode, updateMenuItem, updatePosterConfig, addMenuItem, removeMenuItem } = useEditableContent();
   const posterRef = useRef(null);
+  const posterBgFileRef = useRef(null);
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
+
+  const handlePosterBgUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (e.target) e.target.value = '';
+    if (!file) return;
+    try {
+      const { compressImage } = await import('@/lib/imageCompressor.js');
+      const { uploadFile } = await import('@/lib/storage.js');
+      const compressedUrl = await compressImage(file, 1600, 0.7);
+      const storageUrl = await uploadFile(compressedUrl);
+      updatePosterConfig("bgImage", storageUrl);
+    } catch (error) {
+      console.error("Error processing poster bg:", error);
+    }
+  };
 
   const handleDownloadPNG = async () => {
     if (!posterRef.current) return;
     setIsDownloading(true);
     try {
+      await Promise.race([
+        document.fonts.ready,
+        new Promise(resolve => setTimeout(resolve, 3000))
+      ]);
+
       const canvas = await html2canvas(posterRef.current, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
-        backgroundColor: '#1a1a1a'
+        backgroundColor: null,
+        logging: false,
+        onclone: async (clonedDoc) => {
+          const el = clonedDoc.getElementById('menu-to-export');
+          if (el) {
+            el.style.transform = 'none';
+            el.style.width = '1000px';
+            el.style.height = 'auto';
+            el.style.margin = '0';
+            el.style.padding = '0';
+          }
+          // Give a small extra time for fonts inside the clone
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       });
       const link = document.createElement('a');
       link.download = 'menu-maria-bonita.png';
-      link.href = canvas.toDataURL('image/png');
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
       toast({ title: "¡Éxito!", description: "Menú descargado como PNG" });
     } catch (error) {
+      console.error("Export Error: ", error);
       toast({ title: "Error", description: "No se pudo descargar la imagen", variant: "destructive" });
     } finally {
       setIsDownloading(false);
@@ -53,95 +226,49 @@ const MenuPoster = () => {
     if (!posterRef.current) return;
     setIsDownloading(true);
     try {
+      await Promise.race([
+        document.fonts.ready,
+        new Promise(resolve => setTimeout(resolve, 3000))
+      ]);
+
       const canvas = await html2canvas(posterRef.current, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
-        backgroundColor: '#1a1a1a'
+        backgroundColor: null,
+        logging: false,
+        onclone: async (clonedDoc) => {
+          const el = clonedDoc.getElementById('menu-to-export');
+          if (el) {
+            el.style.transform = 'none';
+            el.style.width = '1000px';
+            el.style.height = 'auto';
+            el.style.margin = '0';
+            el.style.padding = '0';
+          }
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', [215.9, 355.6]);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgData = canvas.toDataURL('image/png', 1.0);
+
+      const pdfWidth = 215.9; 
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [pdfWidth, pdfHeight],
+        compress: true
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
       pdf.save('menu-maria-bonita.pdf');
       toast({ title: "¡Éxito!", description: "Menú descargado como PDF" });
     } catch (error) {
+      console.error("PDF Export Error: ", error);
       toast({ title: "Error", description: "No se pudo descargar el PDF", variant: "destructive" });
     } finally {
       setIsDownloading(false);
     }
-  };
-
-  const renderMenuItem = (item, category) => (
-    <div key={item.id} className="flex justify-between items-center group relative pb-3 mb-3 border-b border-white/10 last:border-0 last:mb-0 last:pb-0">
-      {/* Golden bullet */}
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-secondary rotate-45 flex-shrink-0"></div>
-
-      <div className="flex-1 mr-4 pl-5">
-        <InlineEdit
-          value={item.name}
-          onChange={(val) => updateMenuItem(category, item.id, 'name', val)}
-          isEditing={editMode}
-          className="text-lg md:text-xl font-serif font-bold text-white tracking-wide uppercase drop-shadow-sm"
-        />
-      </div>
-      <div className="flex items-center flex-shrink-0">
-        <span className="text-lg md:text-xl font-bold text-primary mr-0.5">$</span>
-        <InlineEdit
-          value={item.price}
-          onChange={(val) => updateMenuItem(category, item.id, 'price', val)}
-          isEditing={editMode}
-          type="number"
-          className="text-lg md:text-xl font-bold text-white w-14 text-right"
-        />
-        {editMode && (
-          <button
-            onClick={() => removeMenuItem(category, item.id)}
-            className="ml-2 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-
-  /* ── Category card ── */
-  const CategoryCard = ({ title, accentColor = 'secondary', children, onAdd, category }) => {
-    const accentMap = {
-      secondary: 'border-secondary',
-      primary: 'border-primary',
-      accent: 'border-amber-500',
-    };
-    const textMap = {
-      secondary: 'text-secondary',
-      primary: 'text-primary',
-      accent: 'text-amber-400',
-    };
-    return (
-      <div className="rounded-sm border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden">
-        {/* Card header */}
-        <div className={`flex items-center justify-between px-5 py-3 border-b-2 ${accentMap[accentColor]} bg-white/5`}>
-          <h3 className={`text-2xl md:text-3xl font-rustic tracking-widest uppercase ${textMap[accentColor]} drop-shadow-md`}>
-            {title}
-          </h3>
-          {editMode && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-white/60 hover:text-white hover:bg-white/10 border border-white/20"
-              onClick={onAdd}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-        {/* Card body */}
-        <div className="px-5 py-4">
-          {children}
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -149,9 +276,72 @@ const MenuPoster = () => {
       {/* ── POSTER ── */}
       <div
         ref={posterRef}
-        className="w-full relative overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col border-4 border-secondary/40"
-        style={{ background: '#1a1a1a', minHeight: '1100px' }}
+        id="menu-to-export"
+        className="w-full relative overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col border-[12px] md:border-[20px] border-secondary/80"
+        style={{
+          backgroundColor: data.posterConfig?.bgColor || '#1a1a1a',
+          minHeight: '1200px'
+        }}
       >
+        {/* Real image background for better PDF/PNG capture (fixes CORS issues) */}
+        {data.posterConfig?.bgImage && (
+          <img 
+            src={data.posterConfig.bgImage} 
+            alt="" 
+            crossOrigin="anonymous"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
+            style={{ opacity: 1 }}
+          />
+        )}
+
+        {/* Editor Toolbar specifically for the Poster background */}
+        {editMode && (
+          <div className="absolute top-6 right-6 flex items-center gap-3 bg-[#1a1a1a]/95 border border-white/10 p-2 px-4 rounded-full shadow-2xl z-50 transition-all hover:bg-[#1a1a1a]">
+            {/* Opacity Slider */}
+            <div className="flex items-center gap-2 mr-2">
+              <span className="text-white/60 text-[8px] uppercase font-bold tracking-tighter">Oscuro</span>
+              <input
+                type="range"
+                min="0"
+                max="90"
+                value={data.posterConfig?.bgOpacity || 0}
+                onChange={(e) => updatePosterConfig('bgOpacity', parseInt(e.target.value))}
+                className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-primary"
+              />
+            </div>
+
+            <div className="w-px h-6 bg-white/10"></div>
+
+            <div className="relative group flex items-center justify-center p-2 hover:bg-white/10 rounded-full cursor-pointer transition-all" title="Cambiar Fondo de Menú">
+              <button onClick={() => posterBgFileRef.current?.click()} className="text-secondary">
+                <ImageIcon className="w-5 h-5" />
+              </button>
+              <input type="file" ref={posterBgFileRef} className="hidden" accept="image/*" onChange={handlePosterBgUpload} />
+            </div>
+            <div className="w-px h-6 bg-white/10"></div>
+            <div className="relative flex items-center justify-center p-2 hover:bg-white/10 rounded-full cursor-pointer transition-all" title="Color de Fondo">
+              <PaintBucket className="w-5 h-5 text-secondary pointer-events-none absolute" />
+              <input
+                type="color"
+                className="w-8 h-8 opacity-0 cursor-pointer"
+                value={data.posterConfig?.bgColor || '#1a1a1a'}
+                onChange={(e) => updatePosterConfig('bgColor', e.target.value)}
+              />
+            </div>
+            {data.posterConfig?.bgImage && (
+              <>
+                <div className="w-px h-6 bg-white/10"></div>
+                <button
+                  onClick={() => updatePosterConfig('bgImage', '')}
+                  className="p-2 hover:bg-red-500/20 text-red-400 rounded-full transition-all"
+                  title="Eliminar Imagen de Fondo"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </>
+            )}
+          </div>
+        )}
         {/* Top golden gradient line */}
         <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-secondary to-transparent z-10 opacity-90"></div>
         <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-secondary to-transparent z-10 opacity-90"></div>
@@ -168,51 +358,99 @@ const MenuPoster = () => {
           </div>
         ))}
 
-        {/* Subtle texture overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
-          style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.4) 2px, rgba(255,255,255,0.4) 3px)' }}>
-        </div>
+        {/* Subtle noise texture (simpler) */}
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none z-0 artisanal-texture"></div>
+
+        {/* Global Darkener Overlay */}
+        <div
+          className="absolute inset-0 z-10 pointer-events-none transition-all duration-300"
+          style={{ backgroundColor: `rgba(0,0,0,${(data.posterConfig?.bgOpacity || 0) / 100})` }}
+        ></div>
 
         {/* ── HEADER ── */}
-        <div className="text-center relative z-30 pt-12 pb-8 px-8 md:px-16">
+        <div className="text-center relative z-30 pt-8 pb-4 px-8 md:px-16">
+          {/* Logo in Poster */}
+          <div className="flex justify-center mb-8 relative">
+            {data.logoUrl ? (
+              <img
+                src={data.logoUrl}
+                alt="Logo"
+                crossOrigin="anonymous"
+                className="h-32 md:h-40 w-auto object-contain drop-shadow-2xl"
+                style={{ filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))' }}
+              />
+            ) : (
+              <div className="flex flex-col items-center">
+                <span className="text-3xl md:text-5xl font-serif font-bold text-secondary tracking-[0.2em] uppercase drop-shadow-lg">
+                  {data.businessInfo?.name || "MARIA BONITA"}
+                </span>
+                <div className="h-[1px] w-32 bg-gradient-to-r from-transparent via-secondary to-transparent mt-2"></div>
+              </div>
+            )}
+            
+            {/* Horizontal divider line behind logo area */}
+            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+          </div>
 
           {/* Top tagline divider */}
-          <div className="flex items-center justify-center space-x-4 mb-6">
+          <div className="flex items-center justify-center space-x-4 mb-3">
             <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-secondary/60 to-secondary/60"></div>
-            <span className="text-secondary/70 text-xs font-serif uppercase tracking-[0.4em] px-4">Tacos & Antojitos Mexicanos</span>
+            <div className="px-4 text-secondary/70 text-xs font-serif uppercase tracking-[0.4em]">
+              <InlineEdit
+                value={data.posterConfig?.tagline || "Tacos & Antojitos Mexicanos"}
+                onChange={(val) => updatePosterConfig('tagline', val)}
+                isEditing={editMode}
+                className="inline-block"
+              />
+            </div>
             <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-secondary/60 to-secondary/60"></div>
           </div>
 
-          {/* Title part 1 */}
-          <InlineEdit
-            value={data.posterConfig.titlePart1}
-            onChange={(val) => updatePosterConfig('titlePart1', val)}
-            isEditing={editMode}
-            className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-white block mb-6 tracking-widest uppercase drop-shadow-lg leading-tight"
-          />
-
-          {/* Pink banner */}
-          <div className="relative inline-block my-4 w-full max-w-2xl mx-auto">
-            <div className="absolute inset-0 bg-primary transform -skew-x-6 shadow-[0_4px_24px_rgba(255,63,152,0.35)] border border-primary/50"></div>
+          {/* Main Heading Parte 1 */}
+          <div className="w-full flex justify-center mb-5">
             <InlineEdit
-              value={data.posterConfig.bannerText}
-              onChange={(val) => updatePosterConfig('bannerText', val)}
+              value={data.posterConfig.titlePart1}
+              onChange={(val) => updatePosterConfig('titlePart1', val)}
               isEditing={editMode}
-              className="relative z-10 text-4xl md:text-6xl font-rustic text-white px-12 py-4 block tracking-widest uppercase drop-shadow-md"
+              className="text-2xl md:text-3xl lg:text-[2.5rem] font-serif font-bold text-white block tracking-widest uppercase drop-shadow-lg leading-tight text-center"
             />
           </div>
 
+          {/* Pink banner - Improved for export stability */}
+          <div className="w-full flex justify-center mt-6 mb-2">
+            <div
+              className="bg-primary shadow-[0_4px_30px_rgba(255,63,152,0.4)] border border-primary/50 px-10 py-4 md:px-16 md:py-6 relative overflow-visible"
+              style={{ 
+                clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)',
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                justifyContent: 'center' 
+              }}
+            >
+              <div className="relative z-10 flex justify-center w-full px-4">
+                <InlineEdit
+                  value={data.posterConfig.bannerText}
+                  onChange={(val) => updatePosterConfig('bannerText', val)}
+                  isEditing={editMode}
+                  className="text-3xl md:text-4xl lg:text-[3.2rem] font-rustic text-white block tracking-widest uppercase drop-shadow-md text-center whitespace-nowrap"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Title part 2 - TACOS  */}
-          <InlineEdit
-            value={data.posterConfig.titlePart2}
-            onChange={(val) => updatePosterConfig('titlePart2', val)}
-            isEditing={editMode}
-            className="text-6xl md:text-8xl lg:text-9xl font-serif font-bold text-secondary block mt-4 tracking-widest drop-shadow-xl uppercase"
-          />
+          <div className="w-full flex justify-center mt-2 pb-2">
+            <InlineEdit
+              value={data.posterConfig.titlePart2}
+              onChange={(val) => updatePosterConfig('titlePart2', val)}
+              isEditing={editMode}
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-[6.8rem] font-serif font-bold text-secondary block tracking-[0.1em] drop-shadow-xl uppercase mobile-text-balance text-center leading-none"
+            />
+          </div>
         </div>
 
         {/* Decorative Divider */}
-        <div className="flex justify-center items-center mb-10 relative z-30 space-x-3 px-8">
+        <div className="flex justify-center items-center mb-6 relative z-30 space-x-3 px-8">
           <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-white/20"></div>
           <div className="w-3 h-3 bg-secondary rotate-45"></div>
           <div className="w-5 h-5 bg-primary rotate-45 border border-primary/50"></div>
@@ -221,7 +459,7 @@ const MenuPoster = () => {
         </div>
 
         {/* ── MENU GRID ── */}
-        <div className="relative z-30 px-8 md:px-12 flex flex-col md:flex-row gap-6 md:gap-10 flex-1 mb-10">
+        <div className="relative z-30 px-4 md:px-12 flex flex-col md:flex-row gap-6 md:gap-10 flex-1 mb-10">
 
           {/* Vertical divider */}
           <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-[1px] border-l border-dashed border-white/10 -translate-x-1/2 pointer-events-none"></div>
@@ -229,60 +467,120 @@ const MenuPoster = () => {
           {/* Left Column */}
           <div className="flex-1 space-y-6">
             <CategoryCard
-              title="TACOS"
+              title={data.posterConfig?.categoryTitles?.tacos || "TACOS"}
               accentColor="secondary"
-              category="tacos"
-              onAdd={() => addMenuItem('tacos', { name: 'NUEVO TACO', price: 0 })}
+              onAdd={() => addMenuItem('tacos', { name: 'NUEVO TACO', price: 0, description: '' })}
+              onTitleChange={(val) => updatePosterConfig('categoryTitles', { ...data.posterConfig.categoryTitles, tacos: val })}
+              editMode={editMode}
             >
-              {data.menu.tacos.map(item => renderMenuItem(item, 'tacos'))}
+              {data.menu.tacos.map(item => (
+                <MenuItemRow
+                  key={item.id}
+                  item={item}
+                  category="tacos"
+                  updateMenuItem={updateMenuItem}
+                  removeMenuItem={removeMenuItem}
+                  editMode={editMode}
+                />
+              ))}
             </CategoryCard>
 
             <CategoryCard
-              title="DESAYUNOS / ANTOJITOS"
+              title={data.posterConfig?.categoryTitles?.desayunos || "DESAYUNOS / ANTOJITOS"}
               accentColor="accent"
-              category="desayunos"
-              onAdd={() => addMenuItem('desayunos', { name: 'NUEVO ANTOJITO', price: 0 })}
+              onAdd={() => addMenuItem('desayunos', { name: 'NUEVO ANTOJITO', price: 0, description: '' })}
+              onTitleChange={(val) => updatePosterConfig('categoryTitles', { ...data.posterConfig.categoryTitles, desayunos: val })}
+              editMode={editMode}
             >
-              {data.menu.desayunos.map(item => renderMenuItem(item, 'desayunos'))}
-            </CategoryCard>
-
-            <CategoryCard
-              title="OTROS"
-              accentColor="secondary"
-              category="otros"
-              onAdd={() => addMenuItem('otros', { name: 'NUEVO PLATILLO', price: 0 })}
-            >
-              {data.menu.otros.map(item => renderMenuItem(item, 'otros'))}
+              {data.menu.desayunos.map(item => (
+                <MenuItemRow
+                  key={item.id}
+                  item={item}
+                  category="desayunos"
+                  updateMenuItem={updateMenuItem}
+                  removeMenuItem={removeMenuItem}
+                  editMode={editMode}
+                />
+              ))}
             </CategoryCard>
           </div>
 
           {/* Right Column */}
           <div className="flex-1 space-y-6">
             <CategoryCard
-              title="QUESADILLAS / SINCRONIZADAS"
+              title={data.posterConfig?.categoryTitles?.quesadillas || "QUESADILLAS / SINCRONIZADAS"}
               accentColor="primary"
-              category="quesadillas"
-              onAdd={() => addMenuItem('quesadillas', { name: 'NUEVA QUESADILLA', price: 0 })}
+              onAdd={() => addMenuItem('quesadillas', { name: 'NUEVA QUESADILLA', price: 0, description: '' })}
+              onTitleChange={(val) => updatePosterConfig('categoryTitles', { ...data.posterConfig.categoryTitles, quesadillas: val })}
+              editMode={editMode}
             >
-              {data.menu.quesadillas.map(item => renderMenuItem(item, 'quesadillas'))}
+              {data.menu.quesadillas.map(item => (
+                <MenuItemRow
+                  key={item.id}
+                  item={item}
+                  category="quesadillas"
+                  updateMenuItem={updateMenuItem}
+                  removeMenuItem={removeMenuItem}
+                  editMode={editMode}
+                />
+              ))}
             </CategoryCard>
 
             <CategoryCard
-              title="SÁBADOS Y DOMINGOS"
+              title={data.posterConfig?.categoryTitles?.weekendSpecials || "SÁBADOS Y DOMINGOS"}
               accentColor="accent"
-              category="weekendSpecials"
-              onAdd={() => addMenuItem('weekendSpecials', { name: 'NUEVO ESPECIAL', price: 0 })}
+              onAdd={() => addMenuItem('weekendSpecials', { name: 'NUEVO ESPECIAL', price: 0, description: '' })}
+              onTitleChange={(val) => updatePosterConfig('categoryTitles', { ...data.posterConfig.categoryTitles, weekendSpecials: val })}
+              editMode={editMode}
             >
-              {data.menu.weekendSpecials.map(item => renderMenuItem(item, 'weekendSpecials'))}
+              {data.menu.weekendSpecials.map(item => (
+                <MenuItemRow
+                  key={item.id}
+                  item={item}
+                  category="weekendSpecials"
+                  updateMenuItem={updateMenuItem}
+                  removeMenuItem={removeMenuItem}
+                  editMode={editMode}
+                />
+              ))}
             </CategoryCard>
 
             <CategoryCard
-              title="BEBIDAS"
+              title={data.posterConfig?.categoryTitles?.otros || "OTROS"}
               accentColor="secondary"
-              category="bebidas"
-              onAdd={() => addMenuItem('bebidas', { name: 'NUEVA BEBIDA', price: 0 })}
+              onAdd={() => addMenuItem('otros', { name: 'NUEVO PLATILLO', price: 0, description: '' })}
+              onTitleChange={(val) => updatePosterConfig('categoryTitles', { ...data.posterConfig.categoryTitles, otros: val })}
+              editMode={editMode}
             >
-              {data.menu.bebidas.map(item => renderMenuItem(item, 'bebidas'))}
+              {data.menu.otros.map(item => (
+                <MenuItemRow
+                  key={item.id}
+                  item={item}
+                  category="otros"
+                  updateMenuItem={updateMenuItem}
+                  removeMenuItem={removeMenuItem}
+                  editMode={editMode}
+                />
+              ))}
+            </CategoryCard>
+
+            <CategoryCard
+              title={data.posterConfig?.categoryTitles?.bebidas || "BEBIDAS"}
+              accentColor="secondary"
+              onAdd={() => addMenuItem('bebidas', { name: 'NUEVA BEBIDA', price: 0, description: '' })}
+              onTitleChange={(val) => updatePosterConfig('categoryTitles', { ...data.posterConfig.categoryTitles, bebidas: val })}
+              editMode={editMode}
+            >
+              {data.menu.bebidas.map(item => (
+                <MenuItemRow
+                  key={item.id}
+                  item={item}
+                  category="bebidas"
+                  updateMenuItem={updateMenuItem}
+                  removeMenuItem={removeMenuItem}
+                  editMode={editMode}
+                />
+              ))}
             </CategoryCard>
           </div>
         </div>
@@ -303,7 +601,7 @@ const MenuPoster = () => {
               value={data.posterConfig.footerText}
               onChange={(val) => updatePosterConfig('footerText', val)}
               isEditing={editMode}
-              className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-white tracking-widest drop-shadow-md block uppercase"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-white tracking-widest drop-shadow-md block uppercase mobile-text-balance"
             />
           </div>
         </div>

@@ -19,7 +19,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="space-y-6">
             <div className="border-4 border-muted p-6 rounded-sm bg-card inline-block shadow-rustic">
-              <h3 className="text-4xl font-serif font-bold text-card-foreground mb-2 uppercase tracking-wider">
+              <h3 className="text-3xl md:text-4xl font-serif font-bold text-card-foreground mb-2 uppercase tracking-wider">
                 MARIA BONITA
               </h3>
               <div className="h-1 w-full bg-primary mb-2"></div>
@@ -45,7 +45,7 @@ const Footer = () => {
           <div className="space-y-6">
             <h4 className="text-3xl font-serif font-bold text-secondary border-b-4 border-muted pb-2 inline-block">Encuéntranos</h4>
             <div className="space-y-6 font-serif text-lg">
-              <div className="flex items-start space-x-4 bg-black/20 p-4 rounded-sm border border-white/10">
+              <div className="flex items-start space-x-4 bg-black/20 p-3 md:p-4 rounded-sm border border-white/10">
                 <MapPin className="w-8 h-8 text-primary flex-shrink-0" />
                 {editMode ? (
                   <Input
@@ -58,7 +58,7 @@ const Footer = () => {
                   <span className="text-foreground leading-relaxed">{data.businessInfo.address}</span>
                 )}
               </div>
-              <div className="flex items-center space-x-4 bg-black/20 p-4 rounded-sm border border-white/10">
+              <div className="flex items-center space-x-4 bg-black/20 p-3 md:p-4 rounded-sm border border-white/10">
                 <Phone className="w-8 h-8 text-primary flex-shrink-0" />
                 {editMode ? (
                   <Input
@@ -79,7 +79,7 @@ const Footer = () => {
           {/* Hours */}
           <div className="space-y-6">
             <h4 className="text-3xl font-serif font-bold text-secondary border-b-4 border-muted pb-2 inline-block">Horarios</h4>
-            <div className="flex items-start space-x-4 font-serif bg-black/20 p-4 rounded-sm border border-white/10">
+            <div className="flex items-start space-x-4 font-serif bg-black/20 p-3 md:p-4 rounded-sm border border-white/10">
               <Clock className="w-8 h-8 text-primary flex-shrink-0" />
               <div className="flex-1 space-y-4 text-lg">
                 {editMode ? (
@@ -117,12 +117,12 @@ const Footer = () => {
           {/* Newsletter & Social */}
           <div className="space-y-6">
             <h4 className="text-3xl font-serif font-bold text-secondary border-b-4 border-muted pb-2 inline-block">Boletín</h4>
-            <p className="font-serif text-foreground/90 text-lg bg-black/20 p-4 rounded-sm border border-white/10">
+            <p className="font-serif text-foreground/90 text-lg bg-black/20 p-3 md:p-4 rounded-sm border border-white/10 mobile-text-balance">
               Suscríbete para recibir nuestras promociones especiales.
             </p>
             <div className="flex space-x-2">
-              <Input 
-                placeholder="Tu correo electrónico" 
+              <Input
+                placeholder="Tu correo electrónico"
                 className="bg-card border-4 border-muted text-card-foreground placeholder:text-card-foreground/50 font-serif h-12"
               />
               <Button className="bg-primary hover:bg-primary/90 text-white px-6 border-4 border-primary h-12">

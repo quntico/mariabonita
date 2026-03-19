@@ -1,15 +1,66 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Palette, Type, Droplet, Layout, RotateCcw, Minus, Maximize2 } from 'lucide-react';
+import { X, Palette, Type, Droplet, Layout, RotateCcw, Minus, Maximize2, Image as ImageIcon } from 'lucide-react';
 import { useEditableContent } from '@/contexts/EditableContent.jsx';
 
 const FONTS = [
+    // Serif
     { name: 'Playfair Display', value: 'Playfair Display' },
-    { name: 'Inter', value: 'Inter' },
+    { name: 'Merriweather', value: 'Merriweather' },
+    { name: 'Lora', value: 'Lora' },
+    { name: 'PT Serif', value: 'PT Serif' },
+    { name: 'Crimson Text', value: 'Crimson Text' },
+    { name: 'Noto Serif', value: 'Noto Serif' },
+    { name: 'Libre Baskerville', value: 'Libre Baskerville' },
+    { name: 'Arvo', value: 'Arvo' },
+    { name: 'Cormorant Garamond', value: 'Cormorant Garamond' },
+    { name: 'Cinzel', value: 'Cinzel' },
+    // Sans-Serif
+    { name: 'Montserrat', value: 'Montserrat' },
+    { name: 'Open Sans', value: 'Open Sans' },
+    { name: 'Lato', value: 'Lato' },
+    { name: 'Oswald', value: 'Oswald' },
+    { name: 'Raleway', value: 'Raleway' },
+    { name: 'Poppins', value: 'Poppins' },
     { name: 'Roboto', value: 'Roboto' },
+    { name: 'Inter', value: 'Inter' },
+    { name: 'Quicksand', value: 'Quicksand' },
+    { name: 'Nunito', value: 'Nunito' },
+    { name: 'Ubuntu', value: 'Ubuntu' },
+    { name: 'Work Sans', value: 'Work Sans' },
+    { name: 'Fira Sans', value: 'Fira Sans' },
+    { name: 'Josefin Sans', value: 'Josefin Sans' },
+    { name: 'Barlow', value: 'Barlow' },
+    { name: 'Titillium Web', value: 'Titillium Web' },
+    { name: 'Kanit', value: 'Kanit' },
+    { name: 'Heebo', value: 'Heebo' },
+    { name: 'DM Sans', value: 'DM Sans' },
+    { name: 'IBM Plex Sans', value: 'IBM Plex Sans' },
+    { name: 'Rubik', value: 'Rubik' },
+    { name: 'Karla', value: 'Karla' },
+    { name: 'Cabin', value: 'Cabin' },
+    { name: 'Manrope', value: 'Manrope' },
+    { name: 'Outfit', value: 'Outfit' },
+    { name: 'Urbanist', value: 'Urbanist' },
+    // Display/Accent
+    { name: 'Pacifico', value: 'Pacifico' },
+    { name: 'Dancing Script', value: 'Dancing Script' },
+    { name: 'Lobster', value: 'Lobster' },
+    { name: 'Satisfy', value: 'Satisfy' },
+    { name: 'Caveat', value: 'Caveat' },
+    { name: 'Great Vibes', value: 'Great Vibes' },
+    { name: 'Sacramento', value: 'Sacramento' },
+    { name: 'Courgette', value: 'Courgette' },
+    { name: 'Permanent Marker', value: 'Permanent Marker' },
     { name: 'Righteous', value: 'Righteous' },
     { name: 'Fredoka One', value: 'Fredoka One' },
-    { name: 'Cinzel', value: 'Cinzel' },
+    { name: 'Special Elite', value: 'Special Elite' },
+    { name: 'Abril Fatface', value: 'Abril Fatface' },
+    { name: 'Amatic SC', value: 'Amatic SC' },
+    { name: 'Shadows Into Light', value: 'Shadows Into Light' },
+    { name: 'Bebas Neue', value: 'Bebas Neue' },
+    { name: 'Kalam', value: 'Kalam' },
+    { name: 'Cookie', value: 'Cookie' }
 ];
 
 const ThemeEditorDialog = ({ open, onClose }) => {
@@ -114,11 +165,15 @@ const ThemeEditorDialog = ({ open, onClose }) => {
                                                 style={{ fontFamily: data.themeConfig?.fontFamily }}
                                             >
                                                 {FONTS.map(font => (
-                                                    <option key={font.value} value={font.value} className="bg-[#1a1a1a] text-white">
+                                                    <option key={font.value} value={font.value} className="bg-[#1a1a1a] text-white" style={{ fontFamily: font.value }}>
                                                         {font.name}
                                                     </option>
                                                 ))}
                                             </select>
+                                            {/* Pre-cargador de fuentes dividido para evitar límites de URL */}
+                                            <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${FONTS.slice(0, 20).map(f => f.value.replace(/ /g, '+')).join('&family=')}&display=swap`} />
+                                            <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${FONTS.slice(20, 40).map(f => f.value.replace(/ /g, '+')).join('&family=')}&display=swap`} />
+                                            <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${FONTS.slice(40).map(f => f.value.replace(/ /g, '+')).join('&family=')}&display=swap`} />
                                         </div>
 
                                         <div>
@@ -185,36 +240,79 @@ const ThemeEditorDialog = ({ open, onClose }) => {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-[10px] text-white/50 uppercase tracking-wider mb-1.5">Acento Principal</label>
-                                            <div className="flex items-center gap-3 bg-black/30 border border-white/10 p-1.5 rounded-lg">
-                                                <input
-                                                    type="color"
-                                                    value={data.themeConfig?.primaryColor || '#ff3f98'}
-                                                    onChange={(e) => updateThemeConfig('primaryColor', e.target.value)}
-                                                    className="w-8 h-8 rounded border-0 bg-transparent cursor-pointer"
-                                                />
-                                                <span className="text-xs text-white/70 font-mono uppercase">
-                                                    {data.themeConfig?.primaryColor || '#ff3f98'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] text-white/50 uppercase tracking-wider mb-1.5">Acento Secundario</label>
-                                            <div className="flex items-center gap-3 bg-black/30 border border-white/10 p-1.5 rounded-lg">
-                                                <input
-                                                    type="color"
-                                                    value={data.themeConfig?.secondaryColor || '#d4af37'}
-                                                    onChange={(e) => updateThemeConfig('secondaryColor', e.target.value)}
-                                                    className="w-8 h-8 rounded border-0 bg-transparent cursor-pointer"
-                                                />
-                                                <span className="text-xs text-white/70 font-mono uppercase">
-                                                    {data.themeConfig?.secondaryColor || '#d4af37'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                         <div>
+                                             <label className="block text-[10px] text-white/50 uppercase tracking-wider mb-1.5">Acento Principal</label>
+                                             <div className="flex items-center gap-3 bg-black/30 border border-white/10 p-1.5 rounded-lg">
+                                                 <input
+                                                     type="color"
+                                                     value={data.themeConfig?.primaryColor || '#ff3f98'}
+                                                     onChange={(e) => updateThemeConfig('primaryColor', e.target.value)}
+                                                     className="w-8 h-8 rounded border-0 bg-transparent cursor-pointer"
+                                                 />
+                                                 <span className="text-xs text-white/70 font-mono uppercase">
+                                                     {data.themeConfig?.primaryColor || '#ff3f98'}
+                                                 </span>
+                                             </div>
+                                         </div>
+                                         <div>
+                                             <label className="block text-[10px] text-white/50 uppercase tracking-wider mb-1.5">Acento Secundario</label>
+                                             <div className="flex items-center gap-3 bg-black/30 border border-white/10 p-1.5 rounded-lg">
+                                                 <input
+                                                     type="color"
+                                                     value={data.themeConfig?.secondaryColor || '#d4af37'}
+                                                     onChange={(e) => updateThemeConfig('secondaryColor', e.target.value)}
+                                                     className="w-8 h-8 rounded border-0 bg-transparent cursor-pointer"
+                                                 />
+                                                 <span className="text-xs text-white/70 font-mono uppercase">
+                                                     {data.themeConfig?.secondaryColor || '#d4af37'}
+                                                 </span>
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     {/* NUEVA SUBSECCION: COLORES DE TEXTO */}
+                                     <div className="mt-6">
+                                         <p className="text-white/40 text-[9px] uppercase tracking-[0.3em] mb-3">Colores Específicos de Letras</p>
+                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                             <div className="bg-white/5 p-2 rounded-lg border border-white/5 hover:border-secondary/20 transition-all group">
+                                                 <label className="block text-[8px] text-white/30 uppercase tracking-widest mb-1.5 group-hover:text-white/50">Navegación</label>
+                                                 <div className="flex items-center gap-2">
+                                                     <input
+                                                         type="color"
+                                                         value={data.themeConfig?.navTextColor || '#ff3f98'}
+                                                         onChange={(e) => updateThemeConfig('navTextColor', e.target.value)}
+                                                         className="w-6 h-6 rounded border-0 bg-transparent cursor-pointer"
+                                                     />
+                                                     <span className="text-[10px] text-white/60 font-mono">{data.themeConfig?.navTextColor || '#ff3f98'}</span>
+                                                 </div>
+                                             </div>
+                                             <div className="bg-white/5 p-2 rounded-lg border border-white/5 hover:border-secondary/20 transition-all group">
+                                                 <label className="block text-[8px] text-white/30 uppercase tracking-widest mb-1.5 group-hover:text-white/50">Logo de Texto</label>
+                                                 <div className="flex items-center gap-2">
+                                                     <input
+                                                         type="color"
+                                                         value={data.themeConfig?.logoTextColor || '#d4af37'}
+                                                         onChange={(e) => updateThemeConfig('logoTextColor', e.target.value)}
+                                                         className="w-6 h-6 rounded border-0 bg-transparent cursor-pointer"
+                                                     />
+                                                     <span className="text-[10px] text-white/60 font-mono">{data.themeConfig?.logoTextColor || '#d4af37'}</span>
+                                                 </div>
+                                             </div>
+                                             <div className="bg-white/5 p-2 rounded-lg border border-white/5 hover:border-secondary/20 transition-all group">
+                                                 <label className="block text-[8px] text-white/30 uppercase tracking-widest mb-1.5 group-hover:text-white/50">Cuerpo Pagina</label>
+                                                 <div className="flex items-center gap-2">
+                                                     <input
+                                                         type="color"
+                                                         value={data.themeConfig?.bodyTextColor || '#ffffff'}
+                                                         onChange={(e) => updateThemeConfig('bodyTextColor', e.target.value)}
+                                                         className="w-6 h-6 rounded border-0 bg-transparent cursor-pointer"
+                                                     />
+                                                     <span className="text-[10px] text-white/60 font-mono">{data.themeConfig?.bodyTextColor || '#ffffff'}</span>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     </div>
+                                 </div>
 
                                 {/* HERO OVERLAYS */}
                                 <div>
@@ -252,6 +350,89 @@ const ThemeEditorDialog = ({ open, onClose }) => {
                                                 onChange={(e) => updateThemeConfig('heroOverlayOpacity', Number(e.target.value))}
                                                 className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
                                             />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* FONDO GLOBAL */}
+                                <div>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <ImageIcon className="w-3.5 h-3.5 text-white/50" />
+                                        <span className="text-white/80 text-[11px] font-serif font-bold uppercase tracking-[0.2em]">Fondo Global (Toda la Web)</span>
+                                        <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div
+                                            className="relative h-24 rounded-xl border-2 border-dashed border-white/10 hover:border-secondary/40 transition-colors bg-black/20 flex flex-col items-center justify-center cursor-pointer group/upload overflow-hidden"
+                                            onClick={() => document.getElementById('global-bg-upload').click()}
+                                        >
+                                            {data.themeConfig?.globalPageBg ? (
+                                                <>
+                                                    <img src={data.themeConfig.globalPageBg} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                                                    <div className="absolute inset-0 bg-black/40 group-hover/upload:bg-black/20 transition-colors flex items-center justify-center">
+                                                        <ImageIcon className="w-6 h-6 text-white" />
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); updateThemeConfig('globalPageBg', ''); }}
+                                                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs hover:scale-110 transition-transform z-10"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center mb-1 group-hover/upload:bg-secondary/20 transition-colors">
+                                                        <RotateCcw className="w-4 h-4 text-white/40 group-hover/upload:text-secondary group-hover/upload:rotate-180 transition-all duration-500" />
+                                                    </div>
+                                                    <p className="text-[10px] text-white/40 uppercase tracking-widest group-hover/upload:text-white">Subir Imagen de Fondo</p>
+                                                </>
+                                            )}
+                                            <input
+                                                id="global-bg-upload"
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    try {
+                                                        const { compressImage } = await import('@/lib/imageCompressor.js');
+                                                        const { uploadFile } = await import('@/lib/storage.js');
+                                                        const compressedUrl = await compressImage(file, 1920, 0.75);
+                                                        const storageUrl = await uploadFile(compressedUrl);
+                                                        updateThemeConfig('globalPageBg', storageUrl);
+                                                    } catch (err) {
+                                                        console.error("Error global bg:", err);
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="flex flex-col justify-end">
+                                                <label className="block text-[10px] text-white/50 uppercase tracking-wider mb-2 flex justify-between">
+                                                    <span>Oscurecimiento Global</span>
+                                                    <span className="text-white/80">{data.themeConfig?.globalPageBgOpacity ?? 70}%</span>
+                                                </label>
+                                                <input
+                                                    type="range"
+                                                    min="0" max="100"
+                                                    value={data.themeConfig?.globalPageBgOpacity ?? 70}
+                                                    onChange={(e) => updateThemeConfig('globalPageBgOpacity', Number(e.target.value))}
+                                                    className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col justify-end">
+                                                <label className="block text-[10px] text-white/50 uppercase tracking-wider mb-2">Textura Madera</label>
+                                                <button
+                                                    onClick={() => updateThemeConfig('globalPageBgTexture', !data.themeConfig?.globalPageBgTexture)}
+                                                    className={`h-9 px-4 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${data.themeConfig?.globalPageBgTexture !== false ? 'bg-secondary/20 text-secondary border border-secondary/30' : 'bg-white/5 text-white/40 border border-white/10'}`}
+                                                >
+                                                    {data.themeConfig?.globalPageBgTexture !== false ? 'Activado' : 'Desactivado'}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

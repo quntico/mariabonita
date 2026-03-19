@@ -13,12 +13,19 @@ import GallerySection from '@/components/GallerySection.jsx';
 import ContactSection from '@/components/ContactSection.jsx';
 
 const InlineEdit = ({ value, onChange, isEditing, className, type = "text" }) => {
+  const [localValue, setLocalValue] = React.useState(value);
+
+  React.useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   if (isEditing) {
     if (type === "textarea") {
       return (
         <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={localValue}
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={() => onChange(localValue)}
           className={`bg-black/20 border-b-2 border-dashed border-secondary/50 focus:outline-none focus:border-secondary w-full max-w-full resize-y min-h-[120px] p-2 rounded-sm ${className}`}
           style={{ textAlign: 'inherit' }}
         />
@@ -27,8 +34,11 @@ const InlineEdit = ({ value, onChange, isEditing, className, type = "text" }) =>
     return (
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={localValue}
+        onChange={(e) => {
+          setLocalValue(e.target.value);
+          onChange(e.target.value);
+        }}
         className={`bg-black/20 border-b-2 border-dashed border-secondary/50 focus:outline-none focus:border-secondary px-1 py-0 w-full max-w-full rounded-sm ${className}`}
         style={{ textAlign: 'inherit' }}
       />
@@ -38,8 +48,9 @@ const InlineEdit = ({ value, onChange, isEditing, className, type = "text" }) =>
 };
 
 const HomePage = () => {
-  const { data, editMode, updateThemeConfig, updatePosterConfig, updateHeroDecoration, removeHeroDecoration, updateAboutConfig, updateAboutBadge } = useEditableContent();
+  const { data, editMode, updateThemeConfig, updateHeroConfig, updatePosterConfig, updateHeroDecoration, removeHeroDecoration, updateAboutConfig, updateAboutBadge, updateHeroBackground } = useEditableContent();
   const aboutFileRef = useRef(null);
+  const heroFileRef = useRef(null);
 
   const handleAboutBgUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -52,6 +63,20 @@ const HomePage = () => {
     } catch (error) {
       console.error("Error processing image:", error);
       alert("No se pudo procesar esta imagen.");
+    }
+  };
+
+  const handleHeroBgUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (e.target) e.target.value = '';
+    if (!file) return;
+    try {
+      const compressedUrl = await compressImage(file, 2000, 0.7);
+      const storageUrl = await uploadFile(compressedUrl);
+      updateHeroBackground(storageUrl);
+    } catch (error) {
+      console.error("Error processing hero image:", error);
+      alert("No se pudo procesar la imagen de fondo.");
     }
   };
 
@@ -84,6 +109,34 @@ const HomePage = () => {
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url('${data.heroBackground || 'https://images.unsplash.com/photo-1583438899925-84fde80483b9?q=80&w=2000&auto=format&fit=crop'}')` }}
         ></div>
+
+        {/* Editor Toolbar specifically for the Hero background */}
+        {editMode && (
+          <div className="absolute top-6 left-6 flex items-center gap-4 bg-black/80 border border-white/20 p-3 rounded-xl shadow-2xl z-50 backdrop-blur-md">
+            <div className="flex items-center gap-3">
+              <span className="text-white/60 text-[10px] uppercase font-bold tracking-tighter">Oscurecer</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={data.themeConfig?.heroOverlayOpacity || 80}
+                onChange={(e) => updateThemeConfig('heroOverlayOpacity', parseInt(e.target.value))}
+                className="w-24 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-primary"
+              />
+              <span className="text-white font-mono text-[11px] w-8">{data.themeConfig?.heroOverlayOpacity || 80}%</span>
+            </div>
+            <div className="w-px h-6 bg-white/20"></div>
+            <button
+              onClick={() => heroFileRef.current?.click()}
+              className="flex items-center gap-2 text-white/80 hover:text-white transition-colors group"
+              title="Cambiar Imagen"
+            >
+              <ImageIcon className="w-4 h-4 text-secondary" />
+              <span className="text-[10px] uppercase font-bold tracking-tighter">Imagen</span>
+            </button>
+            <input type="file" ref={heroFileRef} className="hidden" accept="image/*" onChange={handleHeroBgUpload} />
+          </div>
+        )}
 
         {/* Overlays */}
         <div
@@ -152,24 +205,62 @@ const HomePage = () => {
         {/* Main Content Container */}
         <div className="relative z-10 container mx-auto px-4 flex flex-col items-center justify-center h-full">
           <motion.div
-            drag={editMode ? "y" : false}
+            drag={editMode}
             dragMomentum={false}
-            dragConstraints={{ top: -300, bottom: 300 }}
-            initial={{ opacity: 0, scale: 0.9, y: data.themeConfig?.heroOffsetY || 0 }}
-            animate={{ opacity: 1, scale: 1, y: data.themeConfig?.heroOffsetY || 0 }}
+            dragElastic={0}
+            dragTransition={{ power: 0 }}
+            initial={{ 
+              opacity: 0, 
+              scale: 0.9, 
+              x: data.themeConfig?.heroOffsetX || 0,
+              y: data.themeConfig?.heroOffsetY || 0 
+            }}
+            animate={{ 
+              opacity: 1, 
+              scale: data.themeConfig?.heroScale || 1, 
+              x: data.themeConfig?.heroOffsetX || 0,
+              y: data.themeConfig?.heroOffsetY || 0 
+            }}
             onDragEnd={(e, info) => {
+              const currentX = data.themeConfig?.heroOffsetX || 0;
               const currentY = data.themeConfig?.heroOffsetY || 0;
+              updateThemeConfig('heroOffsetX', currentX + info.offset.x);
               updateThemeConfig('heroOffsetY', currentY + info.offset.y);
             }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className={`w-full max-w-3xl relative ${editMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+            transition={{ duration: editMode ? 0 : 1.5, ease: "easeOut" }}
+            className={`w-full max-w-3xl relative ${editMode ? 'cursor-grab active:cursor-grabbing pointer-events-auto border-2 border-secondary/40 rounded-lg p-2' : ''}`}
           >
+            {/* Canva-style Resize Handles for Hero Block */}
+            {editMode && (
+              <>
+                <div className="absolute -top-3 -left-3 w-5 h-5 bg-secondary rounded-full shadow-lg border-2 border-white z-50"></div>
+                <div className="absolute -top-3 -right-3 w-5 h-5 bg-secondary rounded-full shadow-lg border-2 border-white z-50"></div>
+                <div className="absolute -bottom-3 -left-3 w-5 h-5 bg-secondary rounded-full shadow-lg border-2 border-white z-50"></div>
+                <motion.div 
+                  drag
+                  dragMomentum={false}
+                  dragElastic={0}
+                  onDragStart={(e) => e.stopPropagation()}
+                  onDrag={(e, info) => {
+                    e.stopPropagation();
+                    const currentScale = data.themeConfig?.heroScale || 1;
+                    const sensitivity = 0.01;
+                    const delta = (info.delta.x + info.delta.y) * sensitivity;
+                    updateThemeConfig('heroScale', Math.max(0.2, currentScale + delta));
+                  }}
+                  className="absolute -bottom-4 -right-4 w-9 h-9 bg-yellow-400 rounded-full shadow-2xl border-4 border-white z-[70] cursor-nwse-resize flex items-center justify-center hover:scale-125 transition-transform"
+                >
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                </motion.div>
+              </>
+            )}
+
             {/* Rustic Frame */}
             <div className="absolute inset-0 border-[10px] border-border rounded-sm opacity-90 mix-blend-overlay pointer-events-none shadow-[inset_0_0_30px_rgba(0,0,0,0.9)]"></div>
             <div className="absolute inset-3 border-2 border-double border-muted rounded-sm pointer-events-none z-20 opacity-80"></div>
 
             {/* Poster Background */}
-            <div className="bg-background/60 backdrop-blur-md p-5 md:p-7 border-4 border-muted rounded-sm shadow-rustic relative overflow-hidden">
+            <div className="bg-background/60 backdrop-blur-md p-4 md:p-7 border-4 border-muted rounded-sm shadow-rustic relative overflow-hidden">
 
               {/* Corner Decorations */}
               <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-secondary"></div>
@@ -198,11 +289,11 @@ const HomePage = () => {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.7, duration: 0.8 }}
-                  className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-foreground leading-tight tracking-wide drop-shadow-lg uppercase w-full"
+                  className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-foreground leading-tight tracking-wide drop-shadow-lg uppercase w-full mobile-text-balance"
                 >
                   <InlineEdit
-                    value={data.posterConfig?.titlePart1 || "SI CAES QUE SEA EN LA TENTACIÓN"}
-                    onChange={(val) => updatePosterConfig('titlePart1', val)}
+                    value={data.heroConfig?.titlePart1 || "SI CAES QUE SEA EN LA TENTACIÓN"}
+                    onChange={(val) => updateHeroConfig('titlePart1', val)}
                     isEditing={editMode}
                   />
                 </motion.h1>
@@ -217,8 +308,8 @@ const HomePage = () => {
                   <div className="absolute inset-0 bg-primary transform -skew-x-6 shadow-rustic border-2 border-border"></div>
                   <h2 className="relative z-10 text-2xl md:text-4xl font-rustic text-white px-8 py-2 block tracking-widest uppercase drop-shadow-md">
                     <InlineEdit
-                      value={data.posterConfig?.bannerText || "DE UNOS"}
-                      onChange={(val) => updatePosterConfig('bannerText', val)}
+                      value={data.heroConfig?.bannerText || "DE UNOS"}
+                      onChange={(val) => updateHeroConfig('bannerText', val)}
                       isEditing={editMode}
                     />
                   </h2>
@@ -228,11 +319,11 @@ const HomePage = () => {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 1.1, duration: 0.8 }}
-                  className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-secondary tracking-widest drop-shadow-xl uppercase w-full"
+                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-secondary tracking-widest drop-shadow-xl uppercase w-full"
                 >
                   <InlineEdit
-                    value={data.posterConfig?.titlePart2 || "TACOS"}
-                    onChange={(val) => updatePosterConfig('titlePart2', val)}
+                    value={data.heroConfig?.titlePart2 || "TACOS"}
+                    onChange={(val) => updateHeroConfig('titlePart2', val)}
                     isEditing={editMode}
                   />
                 </motion.h1>
@@ -259,7 +350,11 @@ const HomePage = () => {
                     className="w-full sm:w-auto text-sm px-7 py-4 bg-card hover:bg-card/90 text-card-foreground border-4 border-muted shadow-rustic transition-all hover:-translate-y-1 rounded-sm font-serif font-bold uppercase tracking-wider"
                   >
                     <UtensilsCrossed className="w-4 h-4 mr-2 text-secondary" />
-                    Ver Menú
+                    <InlineEdit
+                      value={data.heroConfig?.menuText || "Ver Menú"}
+                      onChange={(val) => updateHeroConfig('menuText', val)}
+                      isEditing={editMode}
+                    />
                   </Button>
                   <Button
                     onClick={handleWhatsAppClick}
@@ -267,7 +362,11 @@ const HomePage = () => {
                     className="w-full sm:w-auto text-sm px-7 py-4 bg-primary hover:bg-primary/90 text-white border-4 border-border shadow-rustic transition-all hover:-translate-y-1 rounded-sm font-serif font-bold uppercase tracking-wider"
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
-                    Pedir Ahora
+                    <InlineEdit
+                      value={data.heroConfig?.whatsappText || "Pedir Ahora"}
+                      onChange={(val) => updateHeroConfig('whatsappText', val)}
+                      isEditing={editMode}
+                    />
                   </Button>
                 </motion.div>
 
@@ -283,8 +382,7 @@ const HomePage = () => {
           <div
             className="max-w-4xl mx-auto p-12 rounded-sm border-4 border-muted shadow-rustic relative transition-colors duration-500 overflow-hidden"
             style={{
-              color: data.aboutConfig?.textColor || "var(--card-foreground)", // defaults to the parent's foreground
-              textAlign: data.aboutConfig?.textAlign || "center"
+              color: data.aboutConfig?.textColor || "var(--card-foreground)"
             }}
           >
             {/* Background Layers */}
@@ -343,47 +441,51 @@ const HomePage = () => {
                   />
                 </div>
                 <div className="w-px h-6 bg-white/20 self-center mx-1"></div>
-                <button
-                  title="Alinear Izquierda"
-                  onClick={() => updateAboutConfig("textAlign", "left")}
-                  className={`p-1.5 rounded-md transition-all ${data.aboutConfig?.textAlign === "left" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/70 hover:bg-white/20 hover:text-white'}`}
-                >
-                  <AlignLeft className="w-4 h-4" />
-                </button>
-                <button
-                  title="Centrar"
-                  onClick={() => updateAboutConfig("textAlign", "center")}
-                  className={`p-1.5 rounded-md transition-all ${(data.aboutConfig?.textAlign === "center" || !data.aboutConfig?.textAlign) ? 'bg-secondary text-[#1a1a1a]' : 'text-white/70 hover:bg-white/20 hover:text-white'}`}
-                >
-                  <AlignCenter className="w-4 h-4" />
-                </button>
-                <button
-                  title="Justificar"
-                  onClick={() => updateAboutConfig("textAlign", "justify")}
-                  className={`p-1.5 rounded-md transition-all ${data.aboutConfig?.textAlign === "justify" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/70 hover:bg-white/20 hover:text-white'}`}
-                >
-                  <AlignJustify className="w-4 h-4" />
-                </button>
+
+                {/* Aligned Groups for Title & Text */}
+                <div className="flex flex-col gap-1.5 px-1 py-0.5 bg-black/40 rounded-md border border-white/5">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] text-white/40 uppercase w-7 text-right pr-1">Tít</span>
+                    <button onClick={() => updateAboutConfig("titleTextAlign", "left")} className={`p-1 rounded transition-all ${data.aboutConfig?.titleTextAlign === "left" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignLeft className="w-2.5 h-2.5" /></button>
+                    <button onClick={() => updateAboutConfig("titleTextAlign", "center")} className={`p-1 rounded transition-all ${(data.aboutConfig?.titleTextAlign === "center" || !data.aboutConfig?.titleTextAlign) ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignCenter className="w-2.5 h-2.5" /></button>
+                    <button onClick={() => updateAboutConfig("titleTextAlign", "justify")} className={`p-1 rounded transition-all ${data.aboutConfig?.titleTextAlign === "justify" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignJustify className="w-2.5 h-2.5" /></button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] text-white/40 uppercase w-7 text-right pr-1">Pár</span>
+                    <button onClick={() => updateAboutConfig("textTextAlign", "left")} className={`p-1 rounded transition-all ${data.aboutConfig?.textTextAlign === "left" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignLeft className="w-2.5 h-2.5" /></button>
+                    <button onClick={() => updateAboutConfig("textTextAlign", "center")} className={`p-1 rounded transition-all ${data.aboutConfig?.textTextAlign === "center" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignCenter className="w-2.5 h-2.5" /></button>
+                    <button onClick={() => updateAboutConfig("textTextAlign", "justify")} className={`p-1 rounded transition-all ${data.aboutConfig?.textTextAlign === "justify" ? 'bg-secondary text-[#1a1a1a]' : 'text-white/50 hover:text-white'}`}><AlignJustify className="w-2.5 h-2.5" /></button>
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Decorative corner */}
             <div className="absolute top-0 left-0 w-16 h-16 bg-secondary transform -translate-x-8 -translate-y-8 rotate-45 z-10"></div>
 
-            <h2 className="text-5xl md:text-6xl font-serif font-bold mb-8 uppercase tracking-wider relative z-20" style={{ color: 'inherit' }}>
+            <h2
+              className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-6 md:mb-8 uppercase tracking-wider relative z-20"
+              style={{ color: 'inherit', textAlign: data.aboutConfig?.titleTextAlign || 'center' }}
+            >
               <InlineEdit
                 value={data.aboutConfig?.title || "NUESTRA HISTORIA"}
                 onChange={(val) => updateAboutConfig('title', val)}
                 isEditing={editMode}
               />
             </h2>
-            <div className={`flex items-center space-x-4 mb-8 ${data.aboutConfig?.textAlign === 'left' ? 'justify-start' : data.aboutConfig?.textAlign === 'justify' ? 'justify-center w-full' : 'justify-center'}`}>
+            <div className={`flex items-center space-x-4 mb-8 ${(data.aboutConfig?.textTextAlign || data.aboutConfig?.textAlign) === 'left' ? 'justify-start' :
+              (data.aboutConfig?.textTextAlign || data.aboutConfig?.textAlign) === 'right' ? 'justify-end' :
+                'justify-center'
+              }`}>
               <div className="h-1 w-16 bg-secondary"></div>
               <div className="w-4 h-4 bg-primary rotate-45"></div>
               <div className="h-1 w-16 bg-secondary"></div>
             </div>
 
-            <p className="text-2xl font-serif leading-relaxed mb-10 font-medium relative z-20" style={{ color: 'inherit' }}>
+            <p
+              className="text-xl md:text-2xl font-serif leading-relaxed mb-8 md:mb-10 font-medium relative z-20 mobile-text-balance"
+              style={{ color: 'inherit', textAlign: data.aboutConfig?.textTextAlign || 'center' }}
+            >
               <InlineEdit
                 type="textarea"
                 value={data.aboutConfig?.text || "En MARIA BONITA, preparamos cada platillo con la misma pasión y sazón que nos enseñaron en casa. Utilizamos ingredientes frescos, tortillas hechas a mano y salsas de molcajete para llevar el verdadero sabor de México a tu mesa."}
