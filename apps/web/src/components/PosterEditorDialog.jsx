@@ -164,13 +164,24 @@ const PosterEditorDialog = ({ open, onClose }) => {
                                 <FileText className="w-5 h-5 text-secondary" />
                             </div>
                             <div>
-                                <h3 className="text-white font-serif font-bold text-lg leading-tight uppercase tracking-wider">Editor del PDF</h3>
-                                <p className="text-white/30 text-[10px] uppercase font-bold tracking-widest mt-0.5">Configuración de Plantilla de Menú</p>
+                                <h3 className="text-white font-serif font-bold text-lg leading-tight uppercase tracking-wider">Editor de Plantilla PDF</h3>
+                                <p className="text-white/30 text-[10px] uppercase font-bold tracking-widest mt-0.5">Control visual y de contenido</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="p-2 text-white/30 hover:text-white transition-colors hover:rotate-90 duration-300">
-                            <X className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                             <button 
+                                onClick={() => {
+                                    onClose();
+                                    document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                className="px-3 py-1.5 border border-secondary/30 text-secondary hover:bg-secondary/10 rounded-sm text-[10px] font-bold uppercase tracking-widest transition-all"
+                             >
+                                Ir al Menú (Vista previa)
+                             </button>
+                             <button onClick={onClose} className="p-2 text-white/30 hover:text-white transition-colors hover:rotate-90 duration-300">
+                                <X className="w-5 h-5" />
+                             </button>
+                        </div>
                     </div>
 
                     {/* Tabs navigation */}
@@ -201,7 +212,7 @@ const PosterEditorDialog = ({ open, onClose }) => {
                                             value={data.posterConfig?.tagline || ""} 
                                             onChange={(e) => updatePosterConfig('tagline', e.target.value)}
                                             placeholder="Tacos & Antojitos Mexicanos"
-                                            className="bg-white/3 border-white/10 text-white font-serif h-11 focus-visible:ring-secondary/40"
+                                            className="!bg-black/60 border-white/20 text-white font-serif h-11 focus-visible:ring-secondary/40 placeholder:text-white/20"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -210,7 +221,7 @@ const PosterEditorDialog = ({ open, onClose }) => {
                                             value={data.posterConfig?.titlePart1 || ""} 
                                             onChange={(e) => updatePosterConfig('titlePart1', e.target.value)}
                                             placeholder="SI CAES QUE SEA EN LA TENTACIÓN"
-                                            className="bg-white/3 border-white/10 text-white font-serif h-11 focus-visible:ring-secondary/40"
+                                            className="!bg-black/60 border-white/20 text-white font-serif h-11 focus-visible:ring-secondary/40 placeholder:text-white/20"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -219,7 +230,7 @@ const PosterEditorDialog = ({ open, onClose }) => {
                                             value={data.posterConfig?.bannerText || ""} 
                                             onChange={(e) => updatePosterConfig('bannerText', e.target.value)}
                                             placeholder="DE UNOS"
-                                            className="bg-white/3 border-white/10 text-white font-serif h-11 focus-visible:ring-secondary/40"
+                                            className="!bg-black/60 border-white/20 text-white font-serif h-11 focus-visible:ring-secondary/40 placeholder:text-white/20"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -228,7 +239,7 @@ const PosterEditorDialog = ({ open, onClose }) => {
                                             value={data.posterConfig?.titlePart2 || ""} 
                                             onChange={(e) => updatePosterConfig('titlePart2', e.target.value)}
                                             placeholder="TACOS"
-                                            className="bg-white/3 border-white/10 text-white font-serif h-11 focus-visible:ring-secondary/40"
+                                            className="!bg-black/60 border-white/20 text-white font-serif h-11 focus-visible:ring-secondary/40 placeholder:text-white/20"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -237,7 +248,7 @@ const PosterEditorDialog = ({ open, onClose }) => {
                                             value={data.posterConfig?.footerText || ""} 
                                             onChange={(e) => updatePosterConfig('footerText', e.target.value)}
                                             placeholder="¡GRACIAS POR SU PREFERENCIA!"
-                                            className="bg-white/3 border-white/10 text-white font-serif h-11 focus-visible:ring-secondary/40"
+                                            className="!bg-black/60 border-white/20 text-white font-serif h-11 focus-visible:ring-secondary/40 placeholder:text-white/20"
                                         />
                                     </div>
                                 </div>
