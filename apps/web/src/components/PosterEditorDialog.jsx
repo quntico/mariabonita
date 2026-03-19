@@ -5,7 +5,6 @@ import { X, Upload, Link2, RotateCcw, Image, FileText, PaintBucket, Layers, Type
 import { useEditableContent } from '@/contexts/EditableContent.jsx';
 import { compressImage } from '@/lib/imageCompressor.js';
 import { uploadFile } from '@/lib/storage.js';
-import { Slider } from '@/components/ui/slider.jsx';
 import { Input } from '@/components/ui/input.jsx';
 
 const UploadZone = ({ preview, label, hint, onUrl, onFile, onReset }) => {
@@ -273,12 +272,14 @@ const PosterEditorDialog = ({ open, onClose }) => {
                                             <div className="space-y-3">
                                                 <label className="text-[10px] uppercase font-bold tracking-wider text-white/30 ml-1">Oscurecimiento: {data.posterConfig?.bgOpacity || 0}%</label>
                                                 <div className="pt-2 px-1">
-                                                    <Slider
-                                                        value={[data.posterConfig?.bgOpacity || 0]}
-                                                        onValueChange={([val]) => updatePosterConfig('bgOpacity', val)}
-                                                        max={95}
-                                                        step={5}
-                                                        className="cursor-pointer"
+                                                    <input
+                                                        type="range"
+                                                        min="0"
+                                                        max="95"
+                                                        step="5"
+                                                        value={data.posterConfig?.bgOpacity || 0}
+                                                        onChange={(e) => updatePosterConfig('bgOpacity', parseInt(e.target.value))}
+                                                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
                                                     />
                                                 </div>
                                                 <p className="text-[8px] text-white/20 uppercase tracking-tighter">Ayuda a la legibilidad del texto</p>
