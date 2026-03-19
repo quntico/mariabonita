@@ -396,7 +396,13 @@ const MenuPoster = () => {
           </div>
 
           {/* Top tagline divider */}
-          <div className="flex items-center justify-center space-x-4 mb-3">
+          <motion.div 
+            drag={editMode ? "y" : false}
+            dragMomentum={false}
+            onDragEnd={(e, info) => updatePosterConfig('taglineY', (data.posterConfig?.taglineY || 0) + info.offset.y)}
+            animate={{ y: data.posterConfig?.taglineY || 0 }}
+            className={`flex items-center justify-center space-x-4 mb-3 ${editMode ? 'cursor-ns-resize' : ''}`}
+          >
             <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-secondary/60 to-secondary/60"></div>
             <div className="px-4 text-white/90 text-xs font-serif uppercase tracking-[0.4em]">
               <InlineEdit
@@ -407,20 +413,32 @@ const MenuPoster = () => {
               />
             </div>
             <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-secondary/60 to-secondary/60"></div>
-          </div>
+          </motion.div>
 
           {/* Main Heading Parte 1 */}
-          <div className="w-full flex justify-center mb-5">
+          <motion.div 
+            drag={editMode ? "y" : false}
+            dragMomentum={false}
+            onDragEnd={(e, info) => updatePosterConfig('titlePart1Y', (data.posterConfig?.titlePart1Y || 0) + info.offset.y)}
+            animate={{ y: data.posterConfig?.titlePart1Y || 0 }}
+            className={`w-full flex justify-center mb-5 ${editMode ? 'cursor-ns-resize' : ''}`}
+          >
             <InlineEdit
               value={data.posterConfig.titlePart1}
               onChange={(val) => updatePosterConfig('titlePart1', val)}
               isEditing={editMode}
               className="text-2xl md:text-3xl lg:text-[2.5rem] font-serif font-bold text-white block tracking-widest uppercase drop-shadow-lg leading-tight text-center"
             />
-          </div>
+          </motion.div>
 
           {/* Pink banner - Improved for export stability */}
-          <div className="w-full flex justify-center mt-6 mb-2">
+          <motion.div 
+            drag={editMode ? "y" : false}
+            dragMomentum={false}
+            onDragEnd={(e, info) => updatePosterConfig('bannerY', (data.posterConfig?.bannerY || 0) + info.offset.y)}
+            animate={{ y: data.posterConfig?.bannerY || 0 }}
+            className={`w-full flex justify-center mt-6 mb-2 ${editMode ? 'cursor-ns-resize' : ''}`}
+          >
             <div
               className="bg-primary shadow-[0_4px_30px_rgba(255,63,152,0.4)] border border-primary/50 px-10 py-4 md:px-16 md:py-6 relative overflow-visible"
               style={{ 
@@ -439,17 +457,23 @@ const MenuPoster = () => {
                 />
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Title part 2 - TACOS  */}
-          <div className="w-full flex justify-center mt-2 pb-2">
+          <motion.div 
+            drag={editMode ? "y" : false}
+            dragMomentum={false}
+            onDragEnd={(e, info) => updatePosterConfig('titlePart2Y', (data.posterConfig?.titlePart2Y || 0) + info.offset.y)}
+            animate={{ y: data.posterConfig?.titlePart2Y || 0 }}
+            className={`w-full flex justify-center mt-2 pb-2 ${editMode ? 'cursor-ns-resize' : ''}`}
+          >
             <InlineEdit
               value={data.posterConfig.titlePart2}
               onChange={(val) => updatePosterConfig('titlePart2', val)}
               isEditing={editMode}
               className="text-5xl sm:text-6xl md:text-7xl lg:text-[6.8rem] font-serif font-bold text-secondary block tracking-[0.1em] drop-shadow-xl uppercase mobile-text-balance text-center leading-none"
             />
-          </div>
+          </motion.div>
         </div>
 
         {/* Decorative Divider */}
@@ -589,7 +613,13 @@ const MenuPoster = () => {
         </div>
 
         {/* ── FOOTER ── */}
-        <div className="relative z-30 w-full flex justify-center pb-10 px-8">
+        <motion.div 
+          drag={editMode ? "y" : false}
+          dragMomentum={false}
+          onDragEnd={(e, info) => updatePosterConfig('footerY', (data.posterConfig?.footerY || 0) + info.offset.y)}
+          animate={{ y: data.posterConfig?.footerY || 0 }}
+          className={`relative z-30 w-full flex justify-center pb-10 px-8 ${editMode ? 'cursor-ns-resize' : ''}`}
+        >
           <div
             className="relative py-5 px-10 md:px-20 text-center w-full max-w-3xl border border-secondary/40 overflow-hidden"
             style={{ background: 'linear-gradient(135deg, #2a1a0e 0%, #1a1a1a 50%, #2a1a0e 100%)' }}
@@ -607,7 +637,7 @@ const MenuPoster = () => {
               className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-white tracking-widest drop-shadow-md block uppercase mobile-text-balance"
             />
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* ── DOWNLOAD BUTTONS ── */}

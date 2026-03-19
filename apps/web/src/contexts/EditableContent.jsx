@@ -68,6 +68,11 @@ const initialData = {
     bgColor: "#1a1a1a",
     bgOpacity: 0,
     tagline: "Tacos & Antojitos Mexicanos",
+    taglineY: 0,
+    titlePart1Y: 0,
+    bannerY: 0,
+    titlePart2Y: 0,
+    footerY: 0,
     categoryTitles: {
       tacos: "TACOS",
       desayunos: "DESAYUNOS / ANTOJITOS",
