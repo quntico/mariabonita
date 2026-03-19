@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Download, FileText, Plus, Trash2, Image as ImageIcon, PaintBucket, Type, X } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 
 const InlineEdit = ({ value, onChange, isEditing, className, type = "text" }) => {
