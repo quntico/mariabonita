@@ -335,6 +335,19 @@ export const EditableContentProvider = ({ children }) => {
     }
   }, [data.themeConfig]);
 
+  // Aplicar Favicon
+  useEffect(() => {
+    if (data.faviconUrl) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = data.faviconUrl;
+    }
+  }, [data.faviconUrl]);
+
   const updateThemeConfig = (field, value) => {
     setData(prev => ({
       ...prev,
@@ -411,16 +424,6 @@ export const EditableContentProvider = ({ children }) => {
 
   const updateFaviconUrl = (url) => {
     setData(prev => ({ ...prev, faviconUrl: url }));
-    // Apply favicon instantly
-    if (url) {
-      let link = document.querySelector("link[rel~='icon']");
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = url;
-    }
   };
 
   const updateAboutConfig = (field, value) => {
