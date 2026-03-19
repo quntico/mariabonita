@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Pencil, Check, Lock, Image, Link2, Upload, Eye, EyeOff, Palette, Smartphone, Monitor, Heart } from 'lucide-react';
+import { Menu, X, Pencil, Check, Lock, Image, Link2, Upload, Eye, EyeOff, Palette, Smartphone, Monitor, Heart, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button.jsx';
 import { useEditableContent } from '@/contexts/EditableContent.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,6 +9,7 @@ import LogoEditorDialog from '@/components/LogoEditorDialog.jsx';
 import ThemeEditorDialog from '@/components/ThemeEditorDialog.jsx';
 import { compressImage } from '@/lib/imageCompressor.js';
 import { uploadFile } from '@/lib/storage.js';
+import PosterEditorDialog from '@/components/PosterEditorDialog.jsx';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,6 +28,8 @@ const Header = () => {
   const [showLogoEditor, setShowLogoEditor] = useState(false);
   // Theme editor dialog
   const [showThemeEditor, setShowThemeEditor] = useState(false);
+  // Poster editor dialog
+  const [showPosterEditor, setShowPosterEditor] = useState(false);
 
   // Password modal state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -376,6 +379,8 @@ const Header = () => {
 
                       <div className="w-px h-6 bg-secondary/20"></div>
 
+                      <div className="w-px h-6 bg-secondary/20"></div>
+
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -384,6 +389,18 @@ const Header = () => {
                       >
                         <Upload className="w-4 h-4" />
                         Fondo
+                      </motion.button>
+
+                      <div className="w-px h-6 bg-secondary/20"></div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => { setShowPosterEditor(true); setShowBgPanel(false); }}
+                        className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-full ${showPosterEditor ? 'bg-secondary text-[#1a1a1a]' : 'text-secondary hover:text-white hover:bg-secondary/10'}`}
+                      >
+                        <FileText className="w-4 h-4" />
+                        Menú PDF
                       </motion.button>
 
                       <div className="w-px h-6 bg-secondary/20"></div>
@@ -723,6 +740,9 @@ const Header = () => {
 
       {/* ── THEME EDITOR DIALOG ── */}
       <ThemeEditorDialog open={showThemeEditor} onClose={() => setShowThemeEditor(false)} />
+
+      {/* ── POSTER EDITOR DIALOG ── */}
+      <PosterEditorDialog open={showPosterEditor} onClose={() => setShowPosterEditor(false)} />
     </>
   );
 };
