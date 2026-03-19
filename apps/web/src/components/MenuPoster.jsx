@@ -209,10 +209,13 @@ const MenuPoster = () => {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       });
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.download = 'menu-maria-bonita.png';
-      link.href = canvas.toDataURL('image/png', 1.0);
+      link.download = 'Menu_Maria_Bonita.png';
+      link.href = url;
       link.click();
+      URL.revokeObjectURL(url);
       toast({ title: "¡Éxito!", description: "Menú descargado como PNG" });
     } catch (error) {
       console.error("Export Error: ", error);
@@ -261,7 +264,7 @@ const MenuPoster = () => {
       });
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-      pdf.save('menu-maria-bonita.pdf');
+      pdf.save('Menu_Maria_Bonita.pdf');
       toast({ title: "¡Éxito!", description: "Menú descargado como PDF" });
     } catch (error) {
       console.error("PDF Export Error: ", error);
